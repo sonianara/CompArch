@@ -8,7 +8,7 @@ main:
 	syscall					#print msg
 	li $v0,5
 	syscall 				#read an int
-	add $a0,$v0,$zero 		#move to $a0
+	add $a0,$v0,$zero 		        #move to $a0
 
 	jal fib 				#call fib
 
@@ -26,11 +26,11 @@ fib:
 	sw $s0,4($sp)
 	sw $s1,8($sp)
 
-	add $s0,$a0,$zero
+	add $s0, $a0, $zero
 
 	addi $t1, $zero,1
-	beq $s0, $zero, case0
-	beq $s0, $t1, case1
+	beq $s0, $zero, case0		#if value is 0, jump to case0
+	beq $s0, $t1, case1		#if value is 1, jump to case1
 
 	addi $a0, $s0,-1
 
