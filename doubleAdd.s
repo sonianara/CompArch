@@ -9,29 +9,29 @@ prompt4: .asciiz "Enter b low: "
 
 main: 
 
-li $v0, 4
+li $v0, 4		#print message
 la $a0, prompt1
 syscall
-li $v0, 5
+li $v0, 5		#read number
 syscall
 add $a0, $v0, $zero
 
 li $v0, 4
-la $a1, prompt2
+la $a0, prompt2
 syscall 
 li $v0, 5
 syscall
 add $a1, $v0, $zero
 
 li $v0, 4
-la $a2, prompt3
+la $a0, prompt3
 syscall 
 li $v0, 5
 syscall
 add $a2, $v0, $zero
 
 li $v0, 4
-la $a3, prompt4
+la $a0, prompt4
 syscall 
 li $v0, 5
 syscall
@@ -45,16 +45,18 @@ double_add:
 	or 	$t3, $t3, $a3
 
 	addi $t5, 1  		#sign 
+	add $t6, $t6, 0
+	add $t7, $t7, 0
 
-	add 	$v1, $t0, $t1		#add lower bits 
+	add 	$t6, $t0, $t1		#add lower bits and store in $t6
 
-	slt	$v0, $v1, $t0			#set $v0 to 1 if $v1 < $t0, 0 otherwise 
+	slt		$t7, $t6, $t0			#set $v0 to 1 if $v1 < $t0, 0 otherwise 
 	beq 	$t5, $v0, skip 		#skip second check if carry already set in case of weirdness
-	slt 	$v0, $v1, $t1
+	slt 	$t7, $t6, $t1
 	
 	skip: 
-	add 	$v0, $v0, $t2		#add high bits to carry 
-	add 	$v0, $v0, $t3
+	add 	$t7, $t7, $t2		#add high bits to carry 
+	add 	$t7, $t7, $t3
 
 	li $v0, 4 		#to print string
 	add $a0, $a1, $zero
