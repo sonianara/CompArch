@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------*
- *	Example mips_asm program loader. This loads the mips_asm binary     *
- *	named "testcase1.mb" into an array in memory. It reads             	*
- *	the 64-byte header, then loads the code into the mem array.         *
+ *  Example mips_asm program loader. This loads the mips_asm binary     *
+ *  named "testcase1.mb" into an array in memory. It reads              *
+ *  the 64-byte header, then loads the code into the mem array.         *
  *----------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -12,15 +12,15 @@
 
 typedef unsigned int MIPS, *MIPS_PTR;
 
-MB_HDR mb_hdr;		/* Header area */
-MIPS mem[1024];		/* Room for 4K bytes */
+MB_HDR mb_hdr;    /* Header area */
+MIPS mem[1024];   /* Room for 4K bytes */
 
 int main() {
   FILE *fd;
   int n;
   int memp;
   int i;
-  char filename[] = "testcase1.mb";	/* This is the filename to be loaded */
+  char filename[] = "testcase1.mb"; /* This is the filename to be loaded */
 
   /* format the MIPS Binary header */
 
@@ -49,7 +49,8 @@ int main() {
     n = fread((void *) &mem[memp/4], 4, 1, fd); /* note div/4 to make word index */
 
     if (n) {
-      memp += 4;	/* Increment byte pointer by size of instr */
+      /* Increment byte pointer by size of instr */
+      memp += 4;
     } else {
       break;       
     }
@@ -59,7 +60,7 @@ int main() {
   fclose(fd);
 
   /* now dump out the instructions loaded */
-  for (i = 0; i<memp; i+=4)	{
+  for (i = 0; i<memp; i+=4) {
     /* i contains byte offset addresses */
     printf("Instruction@%08X : %08X\n", i, mem[i/4]);
   }
