@@ -1,0 +1,4 @@
+#!/bin/sh
+
+gcc -o load_testcase load_testcase.c
+
