@@ -1,5 +1,4 @@
-/*----------------------------------------------------------------------*
- *  Example mips_asm program loader. This loads the mips_asm binary     *
+/*----------------------------------------------------------------------* *  Example mips_asm program loader. This loads the mips_asm binary     *
  *  named "testcase1.mb" into an array in memory. It reads              *
  *  the 64-byte header, then loads the code into the mem array.         *
  *----------------------------------------------------------------------*/
@@ -19,7 +18,9 @@ int main() {
   FILE *fd;
   int n;
   int memp;
-  int i;
+  int byteOffset;
+  unsigned int *wp;
+  unsigned int wv;
   char filename[] = "testcase1.mb"; /* This is the filename to be loaded */
 
   /* format the MIPS Binary header */
@@ -60,11 +61,18 @@ int main() {
   fclose(fd);
 
   /* now dump out the instructions loaded */
-  for (i = 0; i<memp; i+=4) {
-    /* i contains byte offset addresses */
-    printf("Instruction@%08X : %08X\n", i, mem[i/4]);
+  for (byteOffset = 0; byteOffset < memp; byteOffset += 4) {
+
+    /* byteOffset contains byte offset addresses */
+    printf("@%08X : %08X\n", byteOffset, mem[byteOffset / 4]);
+    wp = (unsigned int *) &mem[byteOffset / 4];
+    wv = *wp & 0b11111100000000000000000000000000;
+    printf("d: %08X \n", wv);
+
   }
 
   printf("\n");
   exit(0);
 }
+
+
