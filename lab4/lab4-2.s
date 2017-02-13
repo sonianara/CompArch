@@ -1,7 +1,7 @@
 .data 
 
 
-ascii: .word '0','1','2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+ascii2: .byte '0','1','2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 prompt: .asciiz "Binary: "
 buff: .space 10
 intspace: 
@@ -16,39 +16,27 @@ la $a0, prompt
 syscall
 
 li $v0, 5
-syscall				#Load input number into $v0
+syscall					#Load input number into $v0
+add $a0, $v0, $zero 	#Load input number into $a0
 
-add $a0, $v0, $zero #Load input number into $a0
+li $t7, 8
 la $a1, buff
 
 bintohex:
-li $s2, 5
-la $t5, ascii 		#loading address of ascii array
-la $s1, intspace
-sw $a0, 0($s1)
 
+	srl $t6, $a0, 28
+	sll $a0, $a0, 4
+	la $t5, ascii2
+	add $t5, $t5, $t6
+	lb $t6, 0($t5)
+	sb $t6, 0($a1)
+	addi $a1, $a1, 1
+	addi $t7, $t7, -1
+	bne $t7, $zero, bintohex
+	sb $zero, 0($a1) 
 
-addi $t7, 0		#start counter at 0
-lb $t0, 0($s1)		 #load byte value into $t0
-andi $t3, $t0, 240 	#masking the upper 4 bits with 11110000
-andi $t4, $t0, 15 	#masking the lower 4 bits with 00001111
-
-			#upper 4 bits
-add $t1, $t3, $t5	#find address of character
-lb $t2, 0($t1)		#loading character into $t1
-sb $t2, 0($a1)
-add $a1, $a1, 1		#increment counter
-
-			#lower 4 bits 
-add $t1, $t4, $t5	#find address of character
-lb $t2, 0($t1)		#loading character into $t1
-sb $t2, 0($a1)
-add $a1, $a1, 1		#increment counter
-add $t7, 1		#decrement overall counter
-blt $t7, $t2, bintohex
-
+la $a0, buff
 li $v0, 4 		#to print string
-add $a0, $a1, $zero
 syscall
 
 li $v0, 10
