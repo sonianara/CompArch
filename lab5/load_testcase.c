@@ -77,7 +77,7 @@ int main() {
     int rd = getRD(wp);
     int rt = getRT(wp);
     double imm = getImm(wp);
-    double eff = getEff(wp);
+    double eff = getEff(wp, byteOffset);
     int shamt = getShamt(wp);
     char funcName[5];
     char IJName[6];
@@ -265,8 +265,9 @@ double getImm(unsigned int *wp) {
   return *wp & 0b00000000000000001111111111111111;
 }
 
-double getEff(unsigned int *wp) {
-  return *wp & 0b00000011111111111111111111111111;
+double getEff(unsigned int *wp, int branchOffset) {
+  return *wp & 0b00000011111111111111111111111111 + branchOffset + 4;
+  
 }
 
 int isBranch(int funcCode) {

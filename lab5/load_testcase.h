@@ -10,7 +10,7 @@ int getRT(unsigned int *wp);
 int getRD(unsigned int *wp);
 int getShamt(unsigned int *wp);
 int isShift(int funcCode);
-double getEff(unsigned int *wp);
+double getEff(unsigned int *wp, int branchOffset);
 double getImm(unsigned int *wp);
 int isBranch(int funcCode);
 
