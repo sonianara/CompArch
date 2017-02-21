@@ -64,6 +64,16 @@ int main() {
 
   fclose(fd);
 
+  printMemDescriptions(mem, wp, memp); 
+
+  printf("\n");
+  exit(0);
+}
+
+void printMemDescriptions(unsigned int *mem, unsigned int *wp, int memp) { 
+  
+  int byteOffset;
+
   /* now dump out the instructions loaded */
   for (byteOffset = 0; byteOffset < memp; byteOffset += 4) {
     /* byteOffset contains byte offset addresses */
@@ -137,10 +147,9 @@ int main() {
    // printf("\tType: [%c] \tName: [%s] \tRs: [%d]\n\n", opCode, funcName, rs);
     printf("\n\n");
   }
-
-  printf("\n");
-  exit(0);
 }
+
+
 
 char getType(unsigned int *wp) {
   unsigned int wv;
