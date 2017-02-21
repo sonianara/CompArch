@@ -112,7 +112,7 @@ int main() {
       printf("\tImm:\t\t [%lf]\n", imm);
       if (isBranch(funcCode)) {
         printf("\t*BRANCH*");
-        printf("\tEffAddr:\t [%s]\n", "??");
+        printf("\tEffAddr:\t [%lf]\n", eff);
         // ADD PC + R[Rs]
       }
     }
