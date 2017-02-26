@@ -1,4 +1,5 @@
-/*----------------------------------------------------------------------* *  Example mips_asm program loader. This loads the mips_asm binary     *
+/*----------------------------------------------------------------------*
+ *  Example mips_asm program loader. This loads the mips_asm binary     *
  *  named "testcase1.mb" into an array in memory. It reads              *
  *  the 64-byte header, then loads the code into the mem array.         *
  *----------------------------------------------------------------------*/
@@ -18,16 +19,27 @@ typedef unsigned int MIPS, *MIPS_PTR;
 
 MB_HDR mb_hdr;    /* Header area */
 MIPS mem[1024];   /* Room for 4K bytes */
+int reg[32];
+int pc;
 
 int main() {
-  FILE *fd;
-  int n;
-  int memp;
-  int byteOffset;
+  /* This is the memory pointer, a byte offset */
+  int memOffset = 0;
   unsigned int *wp;
-  char filename[] = "testcase1.mb"; /* This is the filename to be loaded */
+  reg[0] = 0;
 
-  /* format the MIPS Binary header */
+  loadBinaryFile(&memOffset);
+  printMemDescriptions(&memOffset); 
+
+  printf("\n");
+  exit(0);
+}
+
+void loadBinaryFile(int *memOffset) {
+  FILE *fd;
+  char filename[] = "testcase1.mb"; /* This is the filename to be loaded */
+  int byteOffset;
+  int n;
 
   fd = fopen(filename, "rb");
 
@@ -37,7 +49,7 @@ int main() {
   }
 
   /* This is the memory pointer, a byte offset */
-  memp = 0;
+  *memOffset = 0;
 
   /* read the header and verify it. */
   fread((void *) &mb_hdr, sizeof(mb_hdr), 1, fd);
@@ -51,31 +63,28 @@ int main() {
 
   /* read the binary code a word at a time */
   do {
-    n = fread((void *) &mem[memp/4], 4, 1, fd); /* note div/4 to make word index */
+    n = fread((void *) &mem[(*memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
 
     if (n) {
       /* Increment byte pointer by size of instr */
-      memp += 4;
+      (*memOffset) += 4;
     } else {
       break;       
     }
 
-  } while (memp < sizeof(mem));
+  } while ((*memOffset) < sizeof(mem));
 
   fclose(fd);
 
-  printMemDescriptions(mem, wp, memp); 
-
-  printf("\n");
-  exit(0);
 }
 
-void printMemDescriptions(unsigned int *mem, unsigned int *wp, int memp) { 
+void printMemDescriptions(int *memOffset) { 
+  unsigned int *wp;
   
   int byteOffset;
 
   /* now dump out the instructions loaded */
-  for (byteOffset = 0; byteOffset < memp; byteOffset += 4) {
+  for (byteOffset = 0; byteOffset < *memOffset; byteOffset += 4) {
     /* byteOffset contains byte offset addresses */
     printf("@%08X : %08X\n", byteOffset, mem[byteOffset / 4]);
     wp = (unsigned int *) &mem[byteOffset / 4];
@@ -149,8 +158,6 @@ void printMemDescriptions(unsigned int *mem, unsigned int *wp, int memp) {
   }
 }
 
-
-
 char getType(unsigned int *wp) {
   unsigned int wv;
   wv = *wp >> 26;
@@ -183,6 +190,7 @@ char getType(unsigned int *wp) {
 int getOpcode(unsigned int *wp) {
   return *wp >> 26;
 }
+
 int getFuncCode(unsigned int *wp) {
   return *wp & 0b00000000000000000000000000111111;
 }
@@ -245,16 +253,17 @@ int getRT(unsigned int *wp) {
   unsigned int wv = *wp >> 16;
   return wv & 0b00000000000000000000000000011111;
 }
+
 int getRD(unsigned int *wp) {
   unsigned int wv = *wp >> 11;
   return wv & 0b00000000000000000000000000011111;
 }
+
 int getShamt(unsigned int *wp) {
   unsigned int wv = *wp >> 6;
   return wv & 0b00000000000000000000000000011111;
 }
 
-/* F: 1, V: 2, Other: 0 */
 int isShift(int funcCode) {
   switch (funcCode) {
     case 0x00:

@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 gcc -o load_testcase load_testcase.c
+
+if [[ $1 == "run" ]]; then
+  ./load_testcase
+fi
 

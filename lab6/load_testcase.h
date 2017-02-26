@@ -1,6 +1,7 @@
 
 
-void printMemDescriptions(unsigned int *mem, unsigned int *wp, int memp);
+void loadBinaryFile(int *memOffset);
+void printMemDescriptions(int *memOffset);
 char getType(unsigned int *wp);
 int getOpcode(unsigned int *wp);
 int getFuncCode(unsigned int *wp);
