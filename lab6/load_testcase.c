@@ -517,7 +517,7 @@ void lw(instruction *instr) {
   int rs = getReg(instr->rt);
   int imm = getReg(instr->imm);
   // LOAD FROM MEMORY HERE
-  rt = M[rs + s.imm]
+  //rt = M[rs + s.imm]
   printf("Executed lw\n");
 }
 
