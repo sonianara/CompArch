@@ -781,8 +781,8 @@ void sh(instruction *instr) {
 void sw(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->.imm;
+  int imm = instr->imm;
 
   mem[Reg[rs] + imm] = Reg[rt];
-  printf("Executed LW;);
+  printf("Executed LW;");
 }
