@@ -625,7 +625,14 @@ void or(instruction *instr) {
   printf("Executed or; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
-void and(instruction *instr) {
+void add(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] + Reg[rt];
+  printf("Executed ADD; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void addu(instruction *instr) {
