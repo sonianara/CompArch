@@ -15,85 +15,204 @@
 #define FIXED 2 
 #define OTHER 0
 
+#define R_TYPE 0
+#define I_TYPE 1
+#define J_TYPE 2
+#define INVALID_TYPE 2
+
+#define SINGLE_STEP 1
+#define RUN 2
+
 typedef unsigned int MIPS, *MIPS_PTR;
 
 MB_HDR mb_hdr;    /* Header area */
 MIPS mem[1024];   /* Room for 4K bytes */
 unsigned int reg[32];
-int pc;
+unsigned int pc;
 /* This is the memory pointer, a byte offset */
 int memOffset = 0;
+int instructionCount = 0;
 
 int main() {
+  int mode;
+  int answer;
   unsigned int *wp;
   reg[0] = 0;
 
   loadBinaryFile();
-  loopMem(instructionHandler);  
+
+  printf("Would you like to start in (1) 'single step' mode or in (2) 'run' mode?\n");
+  scanf(" %d", &answer);
+  getchar();
+  while (answer != 1 && answer != 2) {
+    printf("Please enter either 1 or 2\n");
+    scanf("%d", &answer);
+    getchar();
+  }
+
+  mode = (answer == 1) ? SINGLE_STEP : RUN;
+  startSimulation(mode);
+
+  //loopMem(mode);  
   //printMemDescriptions(&memOffset); 
 
   printf("\n");
   exit(0);
 }
 
-void loopMem(void (*instructionHandler)(int, unsigned int)) {
+void startSimulation(int mode) {
   int byteOffset;
-  unsigned int instruction;
+  int memIndex;
+  unsigned int rawInstruction;
+  instruction instr;
+  pc = 0;
 
   /* now dump out the instructions loaded */
   for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
-    instruction = mem[byteOffset / 4];
-    /* byteOffset contains byte offset addresses */
-    instructionHandler(byteOffset, instruction);
-  }
-}
 
-void instructionHandler(int memLocation, unsigned int instr) {
-  printf("@%08X : %08X\n", memLocation, instr);
-}
+    unsigned int rawInstruction = fetchInstruction(pc);
+    instruction instr;
+    instr.address = pc;
+    decodeInstruction(rawInstruction, &instr);
 
-void loadBinaryFile() {
-  FILE *fd;
-  /* This is the filename to be loaded */
-  char filename[] = "testcase1.mb"; 
-  int byteOffset;
-  int n;
+    printInstruction(&instr);
+    executeInstruction(&instr);
 
-  fd = fopen(filename, "rb");
-
-  if (fd == NULL) {
-    printf("\nCouldn't load test case - quitting.\n");
-    exit(99);
-  }
-
-  /* This is the memory pointer, a byte offset */
-  memOffset = 0;
-
-  /* read the header and verify it. */
-  fread((void *) &mb_hdr, sizeof(mb_hdr), 1, fd);
-
-  if (! strcmp(mb_hdr.signature, "~MB")==0) {
-    printf("\nThis isn't really a mips_asm binary file - quitting.\n");
-    exit(98);
-  }
-
-  printf("\n%s Loaded ok, program size=%d bytes.\n\n", filename, mb_hdr.size);
-
-  /* read the binary code a word at a time */
-  do {
-    n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
-
-    if (n) {
-      /* Increment byte pointer by size of instr */
-      (memOffset) += 4;
-    } else {
-      break;       
+    if (mode == SINGLE_STEP) {
+      getchar();
     }
+    pc++;
 
-  } while ((memOffset) < sizeof(mem));
+    printf("\n");
+  }
+}
 
-  fclose(fd);
+unsigned int fetchInstruction(unsigned int pc) {
+  return mem[pc];
+}
 
+void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
+  instr->raw = rawInstruction;
+  instr->type = getType(&rawInstruction);
+  instr->opcode = getOpcode(&rawInstruction);
+  if (instr->type == R_TYPE) {
+    instr->rs = getRS(&rawInstruction);
+    instr->rd = getRD(&rawInstruction);
+    instr->rt = getRT(&rawInstruction);
+    instr->shamt = getShamt(&rawInstruction);
+    instr->funct = getFunct(&rawInstruction);
+  } else if (instr->type == I_TYPE) {
+    instr->rs = getRS(&rawInstruction);
+    instr->rt = getRT(&rawInstruction);
+    instr->imm = getImm(&rawInstruction);
+  } else if (instr->type == J_TYPE) {
+    instr->index = getIndex(&rawInstruction);
+  }
+  getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  instr->isSyscall = (strcmp(instr->mneumonic, "SYSCL") == 0) ? 1: 0;
+}
+
+void executeInstruction(instruction *instr) {
+  if (instr->isSyscall) {
+    int vr = getVReg(0);
+    printf("vr: %d\n", vr);
+    switch (vr) {
+      case 1: printf("SYSCALL: print_int\n"); break;
+      case 2: printf("SYSCALL: print_float\n"); break;
+      case 3: printf("SYSCALL: print_double\n"); break;
+      case 4: printf("SYSCALL: print_string\n"); break;
+      case 5: printf("SYSCALL: read_int\n"); break;
+      case 6: printf("SYSCALL: read_float\n"); break;
+      case 7: printf("SYSCALL: read_double\n"); break;
+      case 8: printf("SYSCALL: read_string\n"); break;
+      case 9: printf("SYSCALL: sbrk\n"); break;
+      case 10: printf("SYSCALL: exit\n"); break;
+      default: printf("Unknown syscall type\n"); break;
+    }
+  } else {
+    printf("Execute `%s` type instruction\n", instr->mneumonic);
+
+    if (strcmp(instr->mneumonic, "lw") == 0) 
+      lw(instr);
+    else if (strcmp(instr->mneumonic, "jal") == 0) 
+      jal(instr);
+  }
+}
+
+void loopMem() {
+  int byteOffset;
+  int memIndex;
+  unsigned int rawInstruction;
+  instruction instr;
+
+  /* now dump out the instructions loaded */
+  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
+    memIndex = byteOffset / 4;
+    readInstruction(memIndex, &instr);
+    printInstruction(&instr);
+    //printf("%d | %d\n\n", instr.type, instr.opcode);
+
+    handleInstruction(memIndex);
+  }
+}
+
+void readInstruction(int index, instruction *instr) {
+  unsigned int rawInstruction = mem[index];
+  instr->address = index * 4;
+  instr->raw = rawInstruction;
+  instr->type = getType(&rawInstruction);
+  instr->opcode = getOpcode(&rawInstruction);
+  if (instr->type == R_TYPE) {
+    instr->rs = getRS(&rawInstruction);
+    instr->rd = getRD(&rawInstruction);
+    instr->rt = getRT(&rawInstruction);
+    instr->shamt = getShamt(&rawInstruction);
+    instr->funct = getFunct(&rawInstruction);
+  } else if (instr->type == I_TYPE) {
+    instr->rs = getRS(&rawInstruction);
+    instr->rt = getRT(&rawInstruction);
+    instr->imm = getImm(&rawInstruction);
+  } else if (instr->type == J_TYPE) {
+    instr->index = getIndex(&rawInstruction);
+  }
+  getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+}
+
+void handleInstruction(int index) {
+  unsigned int instr = mem[index];
+  int memLocation = index * 4;
+
+  instructionCount++;
+}
+
+void printInstruction(instruction *instr) {
+  printf("@%04X | ", instr->address);
+  printf("0x%08X | ", instr->raw);
+  printf("%5s | ", instr->mneumonic);
+
+  if (instr->type == R_TYPE) {
+    printf("R | ");
+    printf("rs:0x%02X | ", instr->rs);
+    printf("rt:0x%02X | ", instr->rt);
+    printf("rd:0x%02X    | ", instr->rd);
+    printf("shamt:0x%02X | ", instr->shamt);
+    printf("funct:0x%02X | ", instr->funct);
+  } else if (instr->type == I_TYPE) {
+    printf("I | ");
+    printf("rs:0x%02X | ", instr->rs);
+    printf("rt:0x%02X | ", instr->rt);
+    printf("imm:0x%04X | ", instr->imm);
+
+  } else if (instr->type == J_TYPE) {
+    printf("J | ");
+    printf("index:0x%07X   | ", instr->index);
+  } else {
+
+  }
+
+
+  
+  printf("\n");
 }
 
 void printMemDescriptions() { 
@@ -107,24 +226,29 @@ void printMemDescriptions() {
     printf("@%08X : %08X\n", byteOffset, mem[byteOffset / 4]);
     wp = (unsigned int *) &mem[byteOffset / 4];
 
-    char type = getType(wp);
-    int funcCode = getFuncCode(wp);
-    int opCode = getOpcode(wp);
+    int type = getType(wp);
+    int funcCode = getFunct(wp);
+    int opcode = getOpcode(wp);
     int rs = getRS(wp);
     int rd = getRD(wp);
     int rt = getRT(wp);
     double imm = getImm(wp);
     double eff = getEff(wp, byteOffset);
     int shamt = getShamt(wp);
+    char mneumonic[5];
     char funcName[5];
     char IJName[6];
-    getFuncName(funcCode, funcName);
-    getFuncName(funcCode, IJName);
+    getMneumonic(opcode, funcCode, mneumonic);
+    //getMneumonic(funcCode, IJName);
 
     /*R-Type*/
     printf("\tAddress:\t [0x%X]\n", byteOffset);
+    printf("\tMneumonic:\t [%s]\n", mneumonic);
 
-    if (type == 'R') {
+    if (type == R_TYPE && strcmp(mneumonic, "other")) {
+      printf("\t*SYSCALL*:\n");
+    }
+    if (type == R_TYPE) {
       printf("\tName:\t\t [%s]\n", funcName);
       printf("\tType:\t\t [%c]\n", type);
       printf("\tFuncCode:\t [%0X]\n", funcCode);
@@ -141,7 +265,7 @@ void printMemDescriptions() {
       }
     }
 
-    else if (type == 'I') {
+    else if (type == I_TYPE) {
       printf("\tName:\t\t [%s]\n", IJName);
       printf("\tType:\t\t [%c]\n", type);
       printf("\tRs:\t\t [%d]\n", rs);
@@ -154,7 +278,7 @@ void printMemDescriptions() {
       }
     }
 
-    else if (type == 'J') {
+    else if (type == J_TYPE) {
       printf("\tName:\t\t [%s]\n", IJName);
       printf("\tType:\t\t [%c]\n", type);
       printf("\tEffAddr:\t [%lf]\n", eff);
@@ -166,42 +290,42 @@ void printMemDescriptions() {
 
 
     /*I-Type*/
-    //printf("Address\t Type\t Name\t ", opCode, funcName, rs);
+    //printf("Address\t Type\t Name\t ", opcode, funcName, rs);
 
     /*J-Type*/
-    //printf("Address\t Type\t Name\t ", opCode, funcName, rs);
+    //printf("Address\t Type\t Name\t ", opcode, funcName, rs);
 
-   // printf("\tType: [%c] \tName: [%s] \tRs: [%d]\n\n", opCode, funcName, rs);
+   // printf("\tType: [%c] \tName: [%s] \tRs: [%d]\n\n", opcode, funcName, rs);
     printf("\n\n");
   }
 }
 
-char getType(unsigned int *wp) {
+int getType(unsigned int *wp) {
   unsigned int wv;
   wv = *wp >> 26;
   switch (wv) {
-    case 0x0: return 'R';
-    case 0x02: return 'J';
-    case 0x03: return 'J';
-    case 0x08: return 'I';
-    case 0x09: return 'I';
-    case 0x0C: return 'I';
-    case 0x0D: return 'I';
-    case 0x0E: return 'I';
-    case 0x0A: return 'I';
-    case 0x0B: return 'I';
-    case 0x04: return 'I';
-    case 0x05: return 'I';
-    case 0x20: return 'I';
-    case 0x24: return 'I';
-    case 0x21: return 'I';
-    case 0x25: return 'I';
-    case 0x0F: return 'I';
-    case 0x23: return 'I';
-    case 0x28: return 'I';
-    case 0x29: return 'I';
-    case 0x2B: return 'I';
-    default: return ' ';
+    case 0x00: return R_TYPE;
+    case 0x02: return J_TYPE;
+    case 0x03: return J_TYPE;
+    case 0x08: return I_TYPE;
+    case 0x09: return I_TYPE;
+    case 0x0C: return I_TYPE;
+    case 0x0D: return I_TYPE;
+    case 0x0E: return I_TYPE;
+    case 0x0A: return I_TYPE;
+    case 0x0B: return I_TYPE;
+    case 0x04: return I_TYPE;
+    case 0x05: return I_TYPE;
+    case 0x20: return I_TYPE;
+    case 0x24: return I_TYPE;
+    case 0x21: return I_TYPE;
+    case 0x25: return I_TYPE;
+    case 0x0F: return I_TYPE;
+    case 0x23: return I_TYPE;
+    case 0x28: return I_TYPE;
+    case 0x29: return I_TYPE;
+    case 0x2B: return I_TYPE;
+    default: return INVALID_TYPE;
   }
 }
 
@@ -209,57 +333,62 @@ int getOpcode(unsigned int *wp) {
   return *wp >> 26;
 }
 
-int getFuncCode(unsigned int *wp) {
+int getFunct(unsigned int *wp) {
   return *wp & 0b00000000000000000000000000111111;
 }
 
-void getFuncName(int funcCode, char *funcName) {
-  switch (funcCode) {
-    case 0x20: strcpy(funcName, "add"); break;
-    case 0x21: strcpy(funcName, "addu"); break;
-    case 0x22: strcpy(funcName, "sub"); break;
-    case 0x23: strcpy(funcName, "subu"); break;
-    case 0x24: strcpy(funcName, "and"); break;
-    case 0x27: strcpy(funcName, "nor"); break;
-    case 0x25: strcpy(funcName, "or"); break;
-    case 0x26: strcpy(funcName, "xor"); break;
-    case 0x00: strcpy(funcName, "sll"); break;
-    case 0x02: strcpy(funcName, "srl"); break;
-    case 0x03: strcpy(funcName, "sra"); break;
-    case 0x04: strcpy(funcName, "sllv"); break;
-    case 0x06: strcpy(funcName, "srlv"); break;
-    case 0x07: strcpy(funcName, "srav"); break;
-    case 0x2a: strcpy(funcName, "slt"); break;
-    case 0x2b: strcpy(funcName, "sltu"); break;
-    case 0x08: strcpy(funcName, "jr"); break;
-    case 0x09: strcpy(funcName, "jalr"); break;
-    default: strcpy(funcName, "other"); break;
+void getMneumonic(int opcode, int funct, char *mneumonic) {
+  if (opcode != 0) {
+    switch (opcode) {
+      case 0x08: strcpy(mneumonic, "addi"); break;
+      case 0x09: strcpy(mneumonic, "addiu"); break;
+      case 0x0C: strcpy(mneumonic, "andi"); break;
+      case 0x0D: strcpy(mneumonic, "ori"); break;
+      case 0x0E: strcpy(mneumonic, "xori"); break;
+      case 0x0A: strcpy(mneumonic, "slti"); break;
+      case 0x0B: strcpy(mneumonic, "sltiu"); break;
+      case 0x04: strcpy(mneumonic, "beq"); break;
+      case 0x05: strcpy(mneumonic, "bne"); break;
+      case 0x02: strcpy(mneumonic, "j"); break;
+      case 0x03: strcpy(mneumonic, "jal"); break;
+      case 0x20: strcpy(mneumonic, "lb"); break;
+      case 0x24: strcpy(mneumonic, "lbu"); break;
+      case 0x21: strcpy(mneumonic, "lh"); break;
+      case 0x25: strcpy(mneumonic, "lhu"); break;
+      case 0x0F: strcpy(mneumonic, "lui"); break;
+      case 0x23: strcpy(mneumonic, "lw"); break;
+      case 0x28: strcpy(mneumonic, "sb"); break;
+      case 0x29: strcpy(mneumonic, "sh"); break;
+      case 0x2B: strcpy(mneumonic, "sw"); break;
+      default: strcpy(mneumonic, "other"); break;
+    }
+  } else  {
+    switch (funct) {
+      case 0x20: strcpy(mneumonic, "add"); break;
+      case 0x21: strcpy(mneumonic, "addu"); break;
+      case 0x22: strcpy(mneumonic, "sub"); break;
+      case 0x23: strcpy(mneumonic, "subu"); break;
+      case 0x24: strcpy(mneumonic, "and"); break;
+      case 0x27: strcpy(mneumonic, "nor"); break;
+      case 0x25: strcpy(mneumonic, "or"); break;
+      case 0x26: strcpy(mneumonic, "xor"); break;
+      case 0x00: strcpy(mneumonic, "sll"); break;
+      case 0x02: strcpy(mneumonic, "srl"); break;
+      case 0x03: strcpy(mneumonic, "sra"); break;
+      case 0x04: strcpy(mneumonic, "sllv"); break;
+      case 0x06: strcpy(mneumonic, "srlv"); break;
+      case 0x07: strcpy(mneumonic, "srav"); break;
+      case 0x2A: strcpy(mneumonic, "slt"); break;
+      case 0x2b: strcpy(mneumonic, "sltu"); break;
+      case 0x08: strcpy(mneumonic, "jr"); break;
+      case 0x09: strcpy(mneumonic, "jalr"); break;
+      case 0x0C: strcpy(mneumonic, "SYSCL"); break;
+      default: strcpy(mneumonic, "other"); break;
+    }
   }
 }
 
 void getIJName(int wv, char *funcName) {
-  switch (wv) {
-    case 0x08: strcpy(funcName, "addi"); break;
-    case 0x09: strcpy(funcName, "addiu"); break;
-    case 0x0C: strcpy(funcName, "andi"); break;
-    case 0x0D: strcpy(funcName, "ori"); break;
-    case 0x0E: strcpy(funcName, "xori"); break;
-    case 0x0A: strcpy(funcName, "slti"); break;
-    case 0x0B: strcpy(funcName, "sltiu"); break;
-    case 0x04: strcpy(funcName, "beq"); break;
-    case 0x05: strcpy(funcName, "bne"); break;
-    case 0x02: strcpy(funcName, "j"); break;
-    case 0x03: strcpy(funcName, "jal"); break;
-    case 0x20: strcpy(funcName, "lb"); break;
-    case 0x24: strcpy(funcName, "lbu"); break;
-    case 0x21: strcpy(funcName, "lh"); break;
-    case 0x25: strcpy(funcName, "lhu"); break;
-    case 0x0F: strcpy(funcName, "lui"); break;
-    case 0x23: strcpy(funcName, "lw"); break;
-    case 0x28: strcpy(funcName, "sb"); break;
-    case 0x29: strcpy(funcName, "sh"); break;
-    case 0x2B: strcpy(funcName, "sw"); break;
-  }
 }
 
 int getRS(unsigned int *wp) {
@@ -303,7 +432,10 @@ double getImm(unsigned int *wp) {
 
 double getEff(unsigned int *wp, int branchOffset) {
   return *wp & 0b00000011111111111111111111111111 + branchOffset + 4;
-  
+}
+
+double getIndex(unsigned int *wp) {
+  return *wp & 0b00000011111111111111111111111111;
 }
 
 int isBranch(int funcCode) {
@@ -312,5 +444,82 @@ int isBranch(int funcCode) {
     case 0x05: return 1;
     default: return 0;
   }
+}
+
+unsigned int getTReg(int regNum) {
+  return reg[regNum + 8];
+}
+unsigned int getAReg(int regNum) {
+  return reg[regNum + 4];
+}
+unsigned int getSReg(int regNum) {
+  return reg[regNum + 16];
+}
+unsigned int getVReg(int regNum) {
+  return reg[regNum + 2];
+}
+unsigned int getReg(int regNum) {
+  return reg[regNum];
+}
+
+void loadBinaryFile() {
+  FILE *fd;
+  /* This is the filename to be loaded */
+  //char filename[] = "testcase1.mb"; 
+  char filename[] = "countbits_benchmark2.mb"; 
+  int byteOffset;
+  int n;
+
+  fd = fopen(filename, "rb");
+
+  if (fd == NULL) {
+    printf("\nCouldn't load test case - quitting.\n");
+    exit(99);
+  }
+
+  /* This is the memory pointer, a byte offset */
+  memOffset = 0;
+
+  /* read the header and verify it. */
+  fread((void *) &mb_hdr, sizeof(mb_hdr), 1, fd);
+
+  if (! strcmp(mb_hdr.signature, "~MB")==0) {
+    printf("\nThis isn't really a mips_asm binary file - quitting.\n");
+    exit(98);
+  }
+
+  printf("\n%s Loaded ok, program size=%d bytes.\n\n", filename, mb_hdr.size);
+
+  /* read the binary code a word at a time */
+  do {
+    n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
+
+    if (n) {
+      /* Increment byte pointer by size of instr */
+      (memOffset) += 4;
+    } else {
+      break;       
+    }
+
+  } while ((memOffset) < sizeof(mem));
+
+  fclose(fd);
+
+}
+
+/*******************************************************/
+/*******************************************************/
+
+void lw(instruction *instr) {
+  int rt = getReg(instr->rt);
+  int rs = getReg(instr->rt);
+  int imm = getReg(instr->imm);
+  printf("\n\n\tLW\n\t\trt: %d\n\t\trs: %d\n\t\timm: %d\n\n", rt, rs, imm);
+}
+
+void jal(instruction *instr) {
+  printf("Executing jal\n");
+  int index = instr->index;
+  pc = index;
 }
 

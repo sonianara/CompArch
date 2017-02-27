@@ -1,14 +1,44 @@
 
+typedef struct instruction {
+  unsigned int address; 
+  unsigned int raw;
+  int opcode;
+  int isSyscall;
+  int type;
+  int rs;
+  int rt;
+  int rd;
+  int shamt;
+  int funct;
+  int imm;
+  int index;
+  char mneumonic[5];
+} instruction;
 
-void loopMem(void (*instructionHandler)(int, unsigned int));
-void instructionHandler(int memLocation, unsigned int instr);
+
+/*
+void loopMem(void (*handler)(unsigned int));
+void loopMem(void (*handler)(int));
+*/
+void loopMem();
+//void handleInstruction(unsigned int instr);
+void handleInstruction(int index);
+void executeInstruction(instruction *instr);
+
+void readInstruction(int index, instruction *instr);
+void printInstruction(instruction *instr);
+unsigned int fetchInstruction(unsigned int pc);
+void decodeInstruction(unsigned int rawInstruction, instruction *instr);
+void startSimulation(int mode);
+
+void startSimulation(int mode);
 
 void loadBinaryFile();
 void printMemDescriptions();
-char getType(unsigned int *wp);
+int getType(unsigned int *wp);
 int getOpcode(unsigned int *wp);
-int getFuncCode(unsigned int *wp);
-void getFuncName(int funcCode, char *funcName);
+int getFunct(unsigned int *wp);
+void getMneumonic(int opcode, int funct, char mneumonic[5]);
 void getIJName(int wv, char *funcName);
 int getRS(unsigned int *wp);
 int getRT(unsigned int *wp);
@@ -17,8 +47,15 @@ int getShamt(unsigned int *wp);
 int isShift(int funcCode);
 double getEff(unsigned int *wp, int branchOffset);
 double getImm(unsigned int *wp);
+double getIndex(unsigned int *wp);
 int isBranch(int funcCode);
 
+unsigned int getTReg(int regNum);
+unsigned int getAReg(int regNum);
+unsigned int getSReg(int regNum);
+unsigned int getVReg(int regNum);
+unsigned int getReg(int regNum);
 
-
+void lw(instruction *instr);
+void jal(instruction *instr);
 
