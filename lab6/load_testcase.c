@@ -670,9 +670,23 @@ void subu(instruction *instr) {
 }
 
 void nor(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = ~(Reg[rs] | Reg[rt]);
+  printf("Executed NOR; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void xor(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] ^ Reg[rt]);
+  printf("Executed XOR; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void srl(instruction *instr) {
@@ -688,12 +702,33 @@ void srlv(instruction *instr) {
 }
 
 void srav(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rt] >> Reg[rs]);
+  printf("Executed SRAV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void slt(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLT; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sltu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLTU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void jalr(instruction *instr) {
@@ -706,6 +741,12 @@ void andi(instruction *instr) {
 }
 
 void xori(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] ^ imm;
+  printf("Executed XORI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void slti(instruction *instr) {
