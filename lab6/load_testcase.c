@@ -11,8 +11,8 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
-#define VARIABLE 1 
-#define FIXED 2 
+#define VARIABLE 1
+#define FIXED 2
 #define OTHER 0
 
 #define R_TYPE 0
@@ -61,8 +61,8 @@ int main() {
   mode = (answer == 1) ? SINGLE_STEP : RUN;
   startSimulation(mode);
 
-  //loopMem(mode);  
-  //printMemDescriptions(&memOffset); 
+  //loopMem(mode);
+  //printMemDescriptions(&memOffset);
 
   printf("\n");
   exit(0);
@@ -139,25 +139,25 @@ void executeInstruction(instruction *instr) {
 
   if (instr->isSyscall)
     systemCall(instr);
-  else if (strcmp(instr->mneumonic, "lw") == 0) 
+  else if (strcmp(instr->mneumonic, "lw") == 0)
     lw(instr);
-  else if (strcmp(instr->mneumonic, "jal") == 0) 
+  else if (strcmp(instr->mneumonic, "jal") == 0)
     jal(instr);
-  else if (strcmp(instr->mneumonic, "and") == 0) 
+  else if (strcmp(instr->mneumonic, "and") == 0)
     and(instr);
-  else if (strcmp(instr->mneumonic, "ori") == 0) 
+  else if (strcmp(instr->mneumonic, "ori") == 0)
     ori(instr);
-  else if (strcmp(instr->mneumonic, "beq") == 0) 
+  else if (strcmp(instr->mneumonic, "beq") == 0)
     beq(instr);
-  else if (strcmp(instr->mneumonic, "bne") == 0) 
+  else if (strcmp(instr->mneumonic, "bne") == 0)
     bne(instr);
-  else if (strcmp(instr->mneumonic, "addi") == 0) 
+  else if (strcmp(instr->mneumonic, "addi") == 0)
     addi(instr);
-  else if (strcmp(instr->mneumonic, "sll") == 0) 
+  else if (strcmp(instr->mneumonic, "sll") == 0)
     sll(instr);
-  else if (strcmp(instr->mneumonic, "jr") == 0) 
+  else if (strcmp(instr->mneumonic, "jr") == 0)
     jr(instr);
-  else if (strcmp(instr->mneumonic, "or") == 0) 
+  else if (strcmp(instr->mneumonic, "or") == 0)
     or(instr);
 
 }
@@ -234,13 +234,13 @@ void printInstruction(instruction *instr) {
   }
 
 
-  
+
   printf("\n");
 }
 
-void printMemDescriptions() { 
+void printMemDescriptions() {
   unsigned int *wp;
-  
+
   int byteOffset;
 
   /* now dump out the instructions loaded */
@@ -488,8 +488,8 @@ unsigned int getReg(int regNum) {
 void loadBinaryFile() {
   FILE *fd;
   /* This is the filename to be loaded */
-  //char filename[] = "testcase1.mb"; 
-  char filename[] = "countbits_benchmark2.mb"; 
+  //char filename[] = "testcase1.mb";
+  char filename[] = "countbits_benchmark2.mb";
   int byteOffset;
   int n;
 
@@ -530,7 +530,7 @@ void loadBinaryFile() {
       /* Increment byte pointer by size of instr */
       (memOffset) += 4;
     } else {
-      break;       
+      break;
     }
 
   } while ((memOffset) < sizeof(mem));
@@ -660,4 +660,166 @@ void or(instruction *instr) {
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] | Reg[rt];
   printf("Executed or; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void add(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  //check for overflow???
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] + Reg[rt];
+  printf("Executed ADD; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void addu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  //no overflow
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] + Reg[rt];
+  printf("Executed ADDU; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+/* subtract */
+void sub(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] - Reg[rt];
+  printf("Executed SUB; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+/* subtract unsigned */
+void subu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] - Reg[rt];
+  printf("Executed SUBU; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void nor(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = ~(Reg[rs] | Reg[rt]);
+  printf("Executed NOR; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void xor(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] ^ Reg[rt]);
+  printf("Executed XOR; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void srl(instruction *instr) {
+}
+
+void sra(instruction *instr) {
+}
+
+void sllv(instruction *instr) {
+}
+
+void srlv(instruction *instr) {
+}
+
+void srav(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rt] >> Reg[rs]);
+  printf("Executed SRAV; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void slt(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLT; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void sltu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLTU; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void jalr(instruction *instr) {
+}
+
+void addiu(instruction *instr) {
+}
+
+void andi(instruction *instr) {
+}
+
+void xori(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] ^ imm;
+  printf("Executed XORI; rt: %d -> %d \n", oldRt, Reg[rt]);
+}
+
+void slti(instruction *instr) {
+}
+
+void sltiu(instruction *instr) {
+}
+
+void j(instruction *instr) {
+}
+
+void lb(instruction *instr) {
+}
+
+void lbu(instruction *instr) {
+}
+
+void lh(instruction *instr) {
+}
+
+void lhu(instruction *instr) {
+}
+
+void sb(instruction *instr) {
+}
+
+void sh(instruction *instr) {
+}
+
+/* UNTESTED!!! */
+/* M[R[rs]+SignExtImm]=R[rt]  */
+void sw(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = Reg[rt];
+  printf("Executed LW;");
 }
