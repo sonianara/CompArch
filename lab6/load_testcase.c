@@ -27,17 +27,18 @@ typedef unsigned int MIPS, *MIPS_PTR;
 
 MB_HDR mb_hdr;    /* Header area */
 MIPS mem[1024];   /* Room for 4K bytes */
-unsigned int reg[32];
+unsigned int Reg[32];
 unsigned int pc;
 /* This is the memory pointer, a byte offset */
 int memOffset = 0;
 int instructionCount = 0;
+int exitTriggered = 0;
 
 int main() {
   int mode;
   int answer;
   unsigned int *wp;
-  reg[0] = 0;
+  Reg[0] = 0;
 
   loadBinaryFile();
 
@@ -68,8 +69,8 @@ void startSimulation(int mode) {
   pc = 0;
 
   /* now dump out the instructions loaded */
-  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
 
+  while (!exitTriggered) {
     unsigned int rawInstruction = fetchInstruction(pc);
     instruction instr;
     instr.address = pc;
@@ -81,7 +82,6 @@ void startSimulation(int mode) {
     if (mode == SINGLE_STEP) {
       getchar();
     }
-    pc++;
 
     printf("\n");
   }
@@ -92,6 +92,7 @@ unsigned int fetchInstruction(unsigned int pc) {
 }
 
 void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
+  pc++;
   instr->raw = rawInstruction;
   instr->type = getType(&rawInstruction);
   instr->opcode = getOpcode(&rawInstruction);
@@ -113,30 +114,31 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
 }
 
 void executeInstruction(instruction *instr) {
-  if (instr->isSyscall) {
-    int vr = getVReg(0);
-    printf("vr: %d\n", vr);
-    switch (vr) {
-      case 1: printf("SYSCALL: print_int\n"); break;
-      case 2: printf("SYSCALL: print_float\n"); break;
-      case 3: printf("SYSCALL: print_double\n"); break;
-      case 4: printf("SYSCALL: print_string\n"); break;
-      case 5: printf("SYSCALL: read_int\n"); break;
-      case 6: printf("SYSCALL: read_float\n"); break;
-      case 7: printf("SYSCALL: read_double\n"); break;
-      case 8: printf("SYSCALL: read_string\n"); break;
-      case 9: printf("SYSCALL: sbrk\n"); break;
-      case 10: printf("SYSCALL: exit\n"); break;
-      default: printf("Unknown syscall type\n"); break;
-    }
-  } else {
-    printf("Execute `%s` type instruction\n", instr->mneumonic);
+  printf("Execute `%s` type instruction\n", instr->mneumonic);
 
-    if (strcmp(instr->mneumonic, "lw") == 0) 
-      lw(instr);
-    else if (strcmp(instr->mneumonic, "jal") == 0) 
-      jal(instr);
-  }
+  if (instr->isSyscall)
+    systemCall(instr);
+  else if (strcmp(instr->mneumonic, "lw") == 0) 
+    lw(instr);
+  else if (strcmp(instr->mneumonic, "jal") == 0) 
+    jal(instr);
+  else if (strcmp(instr->mneumonic, "and") == 0) 
+    and(instr);
+  else if (strcmp(instr->mneumonic, "ori") == 0) 
+    ori(instr);
+  else if (strcmp(instr->mneumonic, "beq") == 0) 
+    beq(instr);
+  else if (strcmp(instr->mneumonic, "bne") == 0) 
+    bne(instr);
+  else if (strcmp(instr->mneumonic, "addi") == 0) 
+    addi(instr);
+  else if (strcmp(instr->mneumonic, "sll") == 0) 
+    sll(instr);
+  else if (strcmp(instr->mneumonic, "jr") == 0) 
+    jr(instr);
+  else if (strcmp(instr->mneumonic, "or") == 0) 
+    or(instr);
+
 }
 
 void loopMem() {
@@ -447,19 +449,19 @@ int isBranch(int funcCode) {
 }
 
 unsigned int getTReg(int regNum) {
-  return reg[regNum + 8];
+  return Reg[regNum + 8];
 }
 unsigned int getAReg(int regNum) {
-  return reg[regNum + 4];
+  return Reg[regNum + 4];
 }
 unsigned int getSReg(int regNum) {
-  return reg[regNum + 16];
+  return Reg[regNum + 16];
 }
 unsigned int getVReg(int regNum) {
-  return reg[regNum + 2];
+  return Reg[regNum + 2];
 }
 unsigned int getReg(int regNum) {
-  return reg[regNum];
+  return Reg[regNum];
 }
 
 void loadBinaryFile() {
@@ -514,12 +516,111 @@ void lw(instruction *instr) {
   int rt = getReg(instr->rt);
   int rs = getReg(instr->rt);
   int imm = getReg(instr->imm);
-  printf("\n\n\tLW\n\t\trt: %d\n\t\trs: %d\n\t\timm: %d\n\n", rt, rs, imm);
+  // LOAD FROM MEMORY HERE
+  rt = M[rs + s.imm]
+  printf("Executed lw\n");
 }
 
 void jal(instruction *instr) {
-  printf("Executing jal\n");
   int index = instr->index;
+  Reg[31] = pc;
   pc = index;
+  printf("Executed jal\n");
 }
 
+void and(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] & Reg[rt];
+  printf("Executed AND; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void ori(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] | imm;
+  printf("Executed ORI; rt: %d -> %d \n", oldRt, Reg[rt]);
+}
+
+void beq(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rs;
+  int imm = instr->imm;
+  int oldPC = pc;
+  if (Reg[rs] == Reg[rt]) {
+    pc += imm;
+  }
+  printf("Executed beq; pc: %d -> %d \n", oldPC, pc);
+}
+
+void systemCall(instruction *instr) {
+  int v0 = getVReg(0);
+  switch (v0) {
+    case 1: printf("SYSCALL: print_int\n"); break;
+    case 2: printf("SYSCALL: print_float\n"); break;
+    case 3: printf("SYSCALL: print_double\n"); break;
+    case 4: printf("SYSCALL: print_string\n"); break;
+    case 5: printf("SYSCALL: read_int\n"); break;
+    case 6: printf("SYSCALL: read_float\n"); break;
+    case 7: printf("SYSCALL: read_double\n"); break;
+    case 8: printf("SYSCALL: read_string\n"); break;
+    case 9: printf("SYSCALL: sbrk\n"); break;
+    case 10:
+            printf("Syscall to exit\n");
+            exitTriggered = 1;
+            break;
+    default: printf("Unknown syscall type\n"); break;
+  }
+}
+
+void addi(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] + imm;
+  printf("Executed ADDI; rt: %d -> %d \n", oldRt, Reg[rt]);
+}
+
+void sll(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rd;
+  int shamt = instr->shamt;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rt] << shamt;
+  printf("Executed SLL; rd: %d -> %d \n", oldRd, Reg[rd]);
+}
+
+void bne(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rs;
+  short imm = instr->imm;
+  int oldPC = pc;
+
+  if (Reg[rs] != Reg[rt]) {
+    pc += imm;
+  }
+  printf("Executed bne; pc: %d -> %d \n", oldPC, pc);
+}
+
+void jr(instruction *instr) {
+  int rs = instr->rs;
+  int oldPC = pc;
+  pc = Reg[rs];
+  printf("Executed jr; pc: %d -> %d \n", oldPC, pc);
+}
+
+void or(instruction *instr) {
+  int rd = instr->rd;
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] | Reg[rt];
+  printf("Executed or; rd: %d -> %d \n", oldRd, Reg[rd]);
+}

@@ -58,4 +58,13 @@ unsigned int getReg(int regNum);
 
 void lw(instruction *instr);
 void jal(instruction *instr);
+void and(instruction *instr);
+void ori(instruction *instr);
+void systemCall(instruction *instr);
+void addi(instruction *instr);
+void beq(instruction *instr);
+void bne(instruction *instr);
+void sll(instruction *instr);
+void jr(instruction *instr);
+void or(instruction *instr);
 
