@@ -1,7 +1,10 @@
 
 
-void loadBinaryFile(int *memOffset);
-void printMemDescriptions(int *memOffset);
+void loopMem(void (*instructionHandler)(int, unsigned int));
+void instructionHandler(int memLocation, unsigned int instr);
+
+void loadBinaryFile();
+void printMemDescriptions();
 char getType(unsigned int *wp);
 int getOpcode(unsigned int *wp);
 int getFuncCode(unsigned int *wp);

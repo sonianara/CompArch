@@ -19,25 +19,43 @@ typedef unsigned int MIPS, *MIPS_PTR;
 
 MB_HDR mb_hdr;    /* Header area */
 MIPS mem[1024];   /* Room for 4K bytes */
-int reg[32];
+unsigned int reg[32];
 int pc;
+/* This is the memory pointer, a byte offset */
+int memOffset = 0;
 
 int main() {
-  /* This is the memory pointer, a byte offset */
-  int memOffset = 0;
   unsigned int *wp;
   reg[0] = 0;
 
-  loadBinaryFile(&memOffset);
-  printMemDescriptions(&memOffset); 
+  loadBinaryFile();
+  loopMem(instructionHandler);  
+  //printMemDescriptions(&memOffset); 
 
   printf("\n");
   exit(0);
 }
 
-void loadBinaryFile(int *memOffset) {
+void loopMem(void (*instructionHandler)(int, unsigned int)) {
+  int byteOffset;
+  unsigned int instruction;
+
+  /* now dump out the instructions loaded */
+  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
+    instruction = mem[byteOffset / 4];
+    /* byteOffset contains byte offset addresses */
+    instructionHandler(byteOffset, instruction);
+  }
+}
+
+void instructionHandler(int memLocation, unsigned int instr) {
+  printf("@%08X : %08X\n", memLocation, instr);
+}
+
+void loadBinaryFile() {
   FILE *fd;
-  char filename[] = "testcase1.mb"; /* This is the filename to be loaded */
+  /* This is the filename to be loaded */
+  char filename[] = "testcase1.mb"; 
   int byteOffset;
   int n;
 
@@ -49,7 +67,7 @@ void loadBinaryFile(int *memOffset) {
   }
 
   /* This is the memory pointer, a byte offset */
-  *memOffset = 0;
+  memOffset = 0;
 
   /* read the header and verify it. */
   fread((void *) &mb_hdr, sizeof(mb_hdr), 1, fd);
@@ -63,28 +81,28 @@ void loadBinaryFile(int *memOffset) {
 
   /* read the binary code a word at a time */
   do {
-    n = fread((void *) &mem[(*memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
+    n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
 
     if (n) {
       /* Increment byte pointer by size of instr */
-      (*memOffset) += 4;
+      (memOffset) += 4;
     } else {
       break;       
     }
 
-  } while ((*memOffset) < sizeof(mem));
+  } while ((memOffset) < sizeof(mem));
 
   fclose(fd);
 
 }
 
-void printMemDescriptions(int *memOffset) { 
+void printMemDescriptions() { 
   unsigned int *wp;
   
   int byteOffset;
 
   /* now dump out the instructions loaded */
-  for (byteOffset = 0; byteOffset < *memOffset; byteOffset += 4) {
+  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
     /* byteOffset contains byte offset addresses */
     printf("@%08X : %08X\n", byteOffset, mem[byteOffset / 4]);
     wp = (unsigned int *) &mem[byteOffset / 4];
