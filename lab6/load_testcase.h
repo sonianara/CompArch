@@ -27,11 +27,10 @@ void executeInstruction(instruction *instr);
 
 void readInstruction(int index, instruction *instr);
 void printInstruction(instruction *instr);
-unsigned int fetchInstruction(unsigned int pc);
+unsigned int fetchInstruction();
 void decodeInstruction(unsigned int rawInstruction, instruction *instr);
 void startSimulation(int mode);
-
-void startSimulation(int mode);
+void loadMemory();
 
 void loadBinaryFile();
 void printMemDescriptions();
