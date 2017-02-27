@@ -630,18 +630,43 @@ void add(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
+  //check for overflow???
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] + Reg[rt];
   printf("Executed ADD; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void addu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  //no overflow
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] + Reg[rt];
+  printf("Executed ADDU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
+/* subtract */
 void sub(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] - Reg[rt];
+  printf("Executed SUB; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
+/* subtract unsigned */
 void subu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rs] - Reg[rt];
+  printf("Executed SUBU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void nor(instruction *instr) {
