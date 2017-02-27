@@ -702,12 +702,33 @@ void srlv(instruction *instr) {
 }
 
 void srav(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rt] >> Reg[rs]);
+  printf("Executed SRAV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void slt(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLT; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sltu(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rs] < Reg[rt]);
+  printf("Executed SLTU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void jalr(instruction *instr) {
