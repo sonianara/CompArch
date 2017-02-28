@@ -1,0 +1,3 @@
+Should the branch instructions set the pc to the branch address + 4, or simply the branch address? Should jump and link instructions set the  register to pc or pc + 4?
+
+Jason: The reference card says +4 for both.
