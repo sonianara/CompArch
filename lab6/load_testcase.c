@@ -11,8 +11,8 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
-#define VARIABLE 1 
-#define FIXED 2 
+#define VARIABLE 1
+#define FIXED 2
 #define OTHER 0
 
 #define R_TYPE 0
@@ -54,8 +54,8 @@ int main() {
   mode = (answer == 1) ? SINGLE_STEP : RUN;
   startSimulation(mode);
 
-  //loopMem(mode);  
-  //printMemDescriptions(&memOffset); 
+  //loopMem(mode);
+  //printMemDescriptions(&memOffset);
 
   printf("\n");
   exit(0);
@@ -118,25 +118,25 @@ void executeInstruction(instruction *instr) {
 
   if (instr->isSyscall)
     systemCall(instr);
-  else if (strcmp(instr->mneumonic, "lw") == 0) 
+  else if (strcmp(instr->mneumonic, "lw") == 0)
     lw(instr);
-  else if (strcmp(instr->mneumonic, "jal") == 0) 
+  else if (strcmp(instr->mneumonic, "jal") == 0)
     jal(instr);
-  else if (strcmp(instr->mneumonic, "and") == 0) 
+  else if (strcmp(instr->mneumonic, "and") == 0)
     and(instr);
-  else if (strcmp(instr->mneumonic, "ori") == 0) 
+  else if (strcmp(instr->mneumonic, "ori") == 0)
     ori(instr);
-  else if (strcmp(instr->mneumonic, "beq") == 0) 
+  else if (strcmp(instr->mneumonic, "beq") == 0)
     beq(instr);
-  else if (strcmp(instr->mneumonic, "bne") == 0) 
+  else if (strcmp(instr->mneumonic, "bne") == 0)
     bne(instr);
-  else if (strcmp(instr->mneumonic, "addi") == 0) 
+  else if (strcmp(instr->mneumonic, "addi") == 0)
     addi(instr);
-  else if (strcmp(instr->mneumonic, "sll") == 0) 
+  else if (strcmp(instr->mneumonic, "sll") == 0)
     sll(instr);
-  else if (strcmp(instr->mneumonic, "jr") == 0) 
+  else if (strcmp(instr->mneumonic, "jr") == 0)
     jr(instr);
-  else if (strcmp(instr->mneumonic, "or") == 0) 
+  else if (strcmp(instr->mneumonic, "or") == 0)
     or(instr);
 
 }
@@ -213,13 +213,13 @@ void printInstruction(instruction *instr) {
   }
 
 
-  
+
   printf("\n");
 }
 
-void printMemDescriptions() { 
+void printMemDescriptions() {
   unsigned int *wp;
-  
+
   int byteOffset;
 
   /* now dump out the instructions loaded */
@@ -467,8 +467,8 @@ unsigned int getReg(int regNum) {
 void loadBinaryFile() {
   FILE *fd;
   /* This is the filename to be loaded */
-  //char filename[] = "testcase1.mb"; 
-  char filename[] = "countbits_benchmark2.mb"; 
+  //char filename[] = "testcase1.mb";
+  char filename[] = "countbits_benchmark2.mb";
   int byteOffset;
   int n;
 
@@ -500,7 +500,7 @@ void loadBinaryFile() {
       /* Increment byte pointer by size of instr */
       (memOffset) += 4;
     } else {
-      break;       
+      break;
     }
 
   } while ((memOffset) < sizeof(mem));
@@ -735,9 +735,21 @@ void jalr(instruction *instr) {
 }
 
 void addiu(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = (unsigned int)Reg[rs] + imm;
+  printf("Executed ADDIU; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void andi(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] & imm;
+  printf("Executed ANDI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void xori(instruction *instr) {
@@ -750,9 +762,31 @@ void xori(instruction *instr) {
 }
 
 void slti(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  if (rs < imm) {
+    Reg[rt] = 1;
+  } 
+  else {
+    Reg[rt] = 0;
+  }
+  printf("Executed SLTI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void sltiu(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  if ((unsigned int)rs < imm) {
+    Reg[rt] = 1;
+  } 
+  else {
+    Reg[rt] = 0;
+  }
+  printf("Executed SLTIU; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void j(instruction *instr) {
@@ -776,9 +810,13 @@ void sb(instruction *instr) {
 void sh(instruction *instr) {
 }
 
+/* UNTESTED!!! */
+/* M[R[rs]+SignExtImm]=R[rt]  */
 void sw(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = Reg[rt];
+  printf("Executed LW;");
 }
-
-
-
-
