@@ -759,21 +759,53 @@ void j(instruction *instr) {
 }
 
 void lb(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (char)(mem[Reg[rs]] + imm);
 }
 
 void lbu(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
 }
 
 void lh(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (short)(mem[Reg[rs]] + imm);
 }
 
+/* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
 void lhu(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
 }
 
 void sb(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = (char)Reg[rt];
 }
 
 void sh(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = (short)Reg[rt];
+  printf("Executed LW;");
 }
 
 /* UNTESTED!!! */
