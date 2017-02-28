@@ -10,7 +10,7 @@ typedef struct instruction {
   int rd;
   int shamt;
   int funct;
-  int imm;
+  short imm;
   int index;
   char mneumonic[5];
   int numClockCycles;

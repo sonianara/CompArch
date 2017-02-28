@@ -11,6 +11,9 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
+//#define FILENAME "countbits_benchmark2.mb"
+#define FILENAME "diagnostics.mb"
+
 #define VARIABLE 1
 #define FIXED 2
 #define OTHER 0
@@ -35,7 +38,8 @@ int instructionCount = 0;
 int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
-int mockEntryPoint = 4;
+int entryPoint;
+//int mockEntryPoint = 4;
 
 int main() {
   int mode;
@@ -44,8 +48,6 @@ int main() {
   Reg[0] = 0;
 
   loadBinaryFile();
-
-  printf("mb_hdr.entry: %d \n", mb_hdr.entry);
 
   loadMemory();
 
@@ -72,7 +74,6 @@ int main() {
 }
 
 void loadMemory() {
-  int entryPoint = mockEntryPoint;
 
   int idx;
   for (idx = 0; idx < entryPoint; idx += 4) {
@@ -91,7 +92,7 @@ void startSimulation(int mode) {
   /* now dump out the instructions loaded */
 
   while (!exitTriggered) {
-    printf("pc: %d\n", pc);
+    printf("pc: 0x%04X\n", pc);
     unsigned int rawInstruction = fetchInstruction();
     instruction instr;
     instr.address = pc;
@@ -100,6 +101,7 @@ void startSimulation(int mode) {
 
     printInstruction(&instr);
     executeInstruction(&instr);
+    printRegisters();
 
 
     if (mode == SINGLE_STEP) {
@@ -137,7 +139,11 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
   } else if (instr->type == J_TYPE) {
     instr->index = getIndex(&rawInstruction);
   }
-  getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  if (rawInstruction == 0) {
+    strcpy(instr->mneumonic, "NOP");
+  } else {
+    getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  }
   instr->isSyscall = (strcmp(instr->mneumonic, "SYSCL") == 0) ? 1: 0;
 }
 
@@ -209,7 +215,13 @@ void readInstruction(int index, instruction *instr) {
   } else if (instr->type == J_TYPE) {
     instr->index = getIndex(&rawInstruction);
   }
-  getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  printf("raw: %d\n", rawInstruction);
+  if (rawInstruction == 0) {
+    printf("NOOOP\n");
+    strcpy(instr->mneumonic, "NOP");
+  } else {
+    getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  }
 }
 
 void handleInstruction(int index) {
@@ -271,6 +283,7 @@ void printMemDescriptions() {
     char funcName[5];
     char IJName[6];
     getMneumonic(opcode, funcCode, mneumonic);
+
     //getMneumonic(funcCode, IJName);
 
     /*R-Type*/
@@ -498,7 +511,7 @@ void loadBinaryFile() {
   FILE *fd;
   /* This is the filename to be loaded */
   //char filename[] = "testcase1.mb";
-  char filename[] = "countbits_benchmark2.mb";
+  char filename[] = FILENAME;
   int byteOffset;
   int n;
 
@@ -520,11 +533,15 @@ void loadBinaryFile() {
     exit(98);
   }
 
-  printf("mb_hdr.entry: %d \n", mb_hdr.entry);
+  //printf("mb_hdr.entry: %d \n", mb_hdr.entry);
   printf("\n%s Loaded ok, program size=%d bytes.\n\n", filename, mb_hdr.size);
 
   /* read the binary code a word at a time */
-  while ((memOffset / 4) < mockEntryPoint / 4) {
+
+  entryPoint = mb_hdr.entry;
+  printf("EntryPoint: %d\n", entryPoint);
+
+  while ((memOffset / 4) < entryPoint / 4) {
     printf("load memory item\n");
     n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
     (memOffset) += 4;
@@ -598,7 +615,7 @@ void and(instruction *instr) {
 void ori(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] | imm;
   printf("Executed ORI; rt: %d -> %d \n", oldRt, Reg[rt]);
@@ -640,7 +657,7 @@ void systemCall(instruction *instr) {
 void addi(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] + imm;
   printf("Executed ADDI; rt: %d -> %d \n", oldRt, Reg[rt]);
@@ -804,7 +821,7 @@ void jalr(instruction *instr) {
 void addiu(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   Reg[rt] = (unsigned int)Reg[rs] + imm;
   printf("Executed ADDIU; rt: %d -> %d \n", oldRt, Reg[rt]);
@@ -813,7 +830,7 @@ void addiu(instruction *instr) {
 void andi(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] & imm;
   printf("Executed ANDI; rt: %d -> %d \n", oldRt, Reg[rt]);
@@ -822,7 +839,7 @@ void andi(instruction *instr) {
 void slti(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   if (rs < imm) {
     Reg[rt] = 1;
@@ -836,7 +853,7 @@ void slti(instruction *instr) {
 void sltiu(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  int imm = instr->imm;
+  short imm = instr->imm;
   int oldRt = Reg[rt];
   if ((unsigned int)rs < imm) {
     Reg[rt] = 1;
@@ -854,7 +871,7 @@ void j(instruction *instr) {
 void lb(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
   memRefCount++;
 
   Reg[rt] = (char)(mem[Reg[rs]] + imm);
@@ -863,7 +880,7 @@ void lb(instruction *instr) {
 void lbu(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
   memRefCount++;
 
   Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
@@ -872,7 +889,7 @@ void lbu(instruction *instr) {
 void lh(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
   memRefCount++;
 
   Reg[rt] = (short)(mem[Reg[rs]] + imm);
@@ -882,7 +899,7 @@ void lh(instruction *instr) {
 void lhu(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
 
   memRefCount++;
   Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
@@ -891,7 +908,7 @@ void lhu(instruction *instr) {
 void sb(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
 
   memRefCount++;
   mem[Reg[rs] + imm] = (char)Reg[rt];
@@ -900,7 +917,7 @@ void sb(instruction *instr) {
 void sh(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
 
   memRefCount++;
   mem[Reg[rs] + imm] = (short)Reg[rt];
@@ -912,7 +929,7 @@ void sh(instruction *instr) {
 void sw(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
-  int imm = instr->imm;
+  short imm = instr->imm;
 
   memRefCount++;
   mem[Reg[rs] + imm] = Reg[rt];

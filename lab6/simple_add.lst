@@ -1,0 +1,42 @@
+mips_asm Version 1.0h
+Source file: simple_add.s
+Object file: simple_add.mb
+           ???????? .data				# this starts the data area
+                         
+                         # Here's some random test data:  (this is a comment)
+                         
+[00000000] 00001234 test1:	.word	0x00001234	# first test integer
+[00000004] 00001111 test2:	.word	0x00001111	# second test integer
+                         
+           ???????? .text				# this starts the code area
+                         
+                         # This little test program just adds two integers, possibly producing a
+                         # carry or overflow.  It uses addu, in order to avoid an overflow exception.
+                         
+                         main:				# this is a label on a line by itself
+[00000008] 8C080000 	lw	$t0, test1	# The first number
+[0000000C] 8C090004 	lw	$t1, test2	# The second number
+                         
+[00000010] 0C000008 	jal	add_them	# Add the numbers together, returning result
+                         				# in $v0
+                         
+[00000014] 00024025 	or	$t0, $zero, $v0	# save $v0 because the HALT cmd wipes it out!
+[00000018] 3402000A 	ori	$v0, $zero, 10		# TRAP HALT
+[0000001C] 0000000C 	syscall			# enditol (end it all)
+                         
+                         # add_them - a subroutine (function) that adds the numbers in $t0 and $t1
+                         # returns a result in $v0
+                         
+[00000020] 01091021 add_them: addu	$v0, $t0, $t1	# add the two integers together
+[00000024] 03E00008 	jr	$ra		# and just return
+                         
+           ???????? 	.end	main		# entry point
+Code size: 00000028 (40) bytes.
+Entry point: 00000008
+Error count: 0
+Symbol Table: 4 entries defined.
+test1 = 00000000 (0), type=03 (Label)
+test2 = 00000004 (4), type=03 (Label)
+main = 00000008 (8), type=03 (Label)
+add_them = 00000020 (32), type=03 (Label)
+
