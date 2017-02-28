@@ -35,6 +35,7 @@ int instructionCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int mockEntryPoint = 4;
+int totalClockCycles = 0;
 
 int main() {
   int mode;
@@ -549,10 +550,13 @@ void printRegisters() {
 /*******************************************************/
 /*******************************************************/
 
+
 void lw(instruction *instr) {
   int rt = getReg(instr->rt);
   int rs = getReg(instr->rt);
   int imm = getReg(instr->imm);
+  instr->numClockCycles = 5;
+  totalClockCycles += 5;
   // LOAD FROM MEMORY HERE
   //rt = M[rs + s.imm]
   printf("Executed lw\n");
@@ -560,6 +564,8 @@ void lw(instruction *instr) {
 
 void jal(instruction *instr) {
   int index = instr->index;
+  instr->numClockCycles = 3;
+  totalClockCycles += 3;
   Reg[31] = pc;
   pc = index;
   printf("Executed jal\n");
@@ -569,12 +575,14 @@ void and(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] & Reg[rt];
   printf("Executed AND; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
+// TO-DO NUMBER OF CLOCK CYCLES????
 void ori(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
@@ -589,6 +597,9 @@ void beq(instruction *instr) {
   int rt = instr->rs;
   int imm = instr->imm;
   int oldPC = pc;
+  instr->numClockCycles = 3;
+  totalClockCycles += 3;
+ 
   if (Reg[rs] == Reg[rt]) {
     pc += imm;
   }
@@ -615,6 +626,7 @@ void systemCall(instruction *instr) {
   }
 }
 
+// TO-DO NUMBER OF CLOCK CYCLES????
 void addi(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
@@ -624,6 +636,8 @@ void addi(instruction *instr) {
   printf("Executed ADDI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
+
+//TO-DO NUMBER OF CLOCK CYCLES????
 void sll(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rd;
@@ -639,7 +653,9 @@ void bne(instruction *instr) {
   int rt = instr->rs;
   short imm = instr->imm;
   int oldPC = pc;
-
+  instr->numClockCycles = 3;
+  totalClockCycles += 3;
+ 
   if (Reg[rs] != Reg[rt]) {
     pc += imm;
   }
@@ -650,6 +666,9 @@ void jr(instruction *instr) {
   int rs = instr->rs;
   int oldPC = pc;
   pc = Reg[rs];
+  instr->numClockCycles = 3;
+  totalClockCycles += 3;
+
   printf("Executed jr; pc: %d -> %d \n", oldPC, pc);
 }
 
@@ -658,6 +677,8 @@ void or(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int oldRd = Reg[rd];
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   Reg[rd] = Reg[rs] | Reg[rt];
   printf("Executed or; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
@@ -667,6 +688,8 @@ void add(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   //check for overflow???
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] + Reg[rt];
@@ -677,7 +700,9 @@ void addu(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-
+ 
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   //no overflow
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] + Reg[rt];
@@ -690,6 +715,8 @@ void sub(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] - Reg[rt];
   printf("Executed SUB; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -701,6 +728,8 @@ void subu(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] - Reg[rt];
   printf("Executed SUBU; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -711,6 +740,8 @@ void nor(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = ~(Reg[rs] | Reg[rt]);
   printf("Executed NOR; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -720,28 +751,70 @@ void xor(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
 
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] ^ Reg[rt]);
   printf("Executed XOR; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
+//TO-DO NUMBER OF CLOCK CYCLES?????
 void srl(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int shamt = instr->shamt;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rt] >> shamt;
+  Reg[rd] &= ~(1 << 31);
+  printf("Executed SRL; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sra(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int shamt = instr->shamt;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rt] >> shamt;
+  printf("Executed SRA; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sllv(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[rt] << Reg[rs];
+  printf("Executed SLLV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void srlv(instruction *instr) {
+  int rd = instr->rd;
+  int rt = instr->rt;
+  int rs = instr->rs;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
+
+  int oldRd = Reg[rd];
+  Reg[rd] = (Reg[rt] >> Reg[rs]);
+  printf("Executed SRLV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void srav(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
 
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rt] >> Reg[rs]);
@@ -752,7 +825,8 @@ void slt(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] < Reg[rt]);
   printf("Executed SLT; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -762,13 +836,16 @@ void sltu(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] < Reg[rt]);
   printf("Executed SLTU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void jalr(instruction *instr) {
+  instr-> numClockCycles = 3;
+  totalClockCycles += 3;
 }
 
 void addiu(instruction *instr) {
@@ -827,9 +904,18 @@ void sltiu(instruction *instr) {
 }
 
 void j(instruction *instr) {
+  int rd = instr->rd;
+  int imm = instr->imm;
+  instr->numClockCycles = 3;
+  totalClockCycles += 3;
+  int oldRd = Reg[rd];
+  Reg[rd] = Reg[imm];
+  printf("Executed J; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void lb(instruction *instr) {
+  instr->numClockCycles = 5;
+  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -838,6 +924,8 @@ void lb(instruction *instr) {
 }
 
 void lbu(instruction *instr) {
+  instr->numClockCycles = 5;
+  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -846,6 +934,8 @@ void lbu(instruction *instr) {
 }
 
 void lh(instruction *instr) {
+  instr->numClockCycles = 5;
+  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -855,6 +945,8 @@ void lh(instruction *instr) {
 
 /* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
 void lhu(instruction *instr) {
+  instr->numClockCycles = 5;
+  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -863,6 +955,8 @@ void lhu(instruction *instr) {
 }
 
 void sb(instruction *instr) {
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -871,6 +965,8 @@ void sb(instruction *instr) {
 }
 
 void sh(instruction *instr) {
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
@@ -879,9 +975,11 @@ void sh(instruction *instr) {
   printf("Executed LW;");
 }
 
-/* UNTESTED!!! */
+	/* UNTESTED!!! */
 /* M[R[rs]+SignExtImm]=R[rt]  */
 void sw(instruction *instr) {
+  instr->numClockCycles = 4;
+  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;

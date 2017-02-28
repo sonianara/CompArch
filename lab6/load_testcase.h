@@ -13,6 +13,7 @@ typedef struct instruction {
   int imm;
   int index;
   char mneumonic[5];
+  int numClockCycles;
 } instruction;
 
 
