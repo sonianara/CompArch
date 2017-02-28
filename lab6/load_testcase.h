@@ -13,6 +13,7 @@ typedef struct instruction {
   int imm;
   int index;
   char mneumonic[5];
+  int numClockCycles;
 } instruction;
 
 
@@ -31,6 +32,8 @@ unsigned int fetchInstruction();
 void decodeInstruction(unsigned int rawInstruction, instruction *instr);
 void startSimulation(int mode);
 void loadMemory();
+unsigned int signExtend(unsigned int val);
+void printRegisters();
 
 void loadBinaryFile();
 void printMemDescriptions();

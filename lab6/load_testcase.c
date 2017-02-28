@@ -32,6 +32,7 @@ unsigned int pc;
 /* This is the memory pointer, a byte offset */
 int memOffset = 0;
 int instructionCount = 0;
+int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int mockEntryPoint = 4;
@@ -48,7 +49,6 @@ int main() {
 
   loadMemory();
 
-
   printf("Would you like to start in (1) 'single step' mode or in (2) 'run' mode?\n");
   scanf(" %d", &answer);
   getchar();
@@ -64,6 +64,9 @@ int main() {
   //loopMem(mode);
   //printMemDescriptions(&memOffset);
 
+  printf("\n\nSimulation complete.\n");
+  printf("Number of instructions simulated: %d\n", instructionCount);
+  printf("Number of memory references: %d\n", memRefCount);
   printf("\n");
   exit(0);
 }
@@ -93,9 +96,11 @@ void startSimulation(int mode) {
     instruction instr;
     instr.address = pc;
     decodeInstruction(rawInstruction, &instr);
+    instr.numberClockCycles = 2;
 
     printInstruction(&instr);
     executeInstruction(&instr);
+
 
     if (mode == SINGLE_STEP) {
       getchar();
@@ -103,6 +108,8 @@ void startSimulation(int mode) {
 
     printf("\n");
   }
+
+  printRegisters();
 }
 
 unsigned int fetchInstruction() {
@@ -136,9 +143,16 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
 
 void executeInstruction(instruction *instr) {
   printf("Execute `%s` type instruction\n", instr->mneumonic);
+  instructionCount++;
 
   if (instr->isSyscall)
     systemCall(instr);
+
+  else if (strcmp(instr->mneumonic, "add") == 0)
+    add(instr);
+  else if (strcmp(instr->mneumonic, "addi") == 0)
+    addi(instr);
+
   else if (strcmp(instr->mneumonic, "lw") == 0)
     lw(instr);
   else if (strcmp(instr->mneumonic, "jal") == 0)
@@ -151,8 +165,6 @@ void executeInstruction(instruction *instr) {
     beq(instr);
   else if (strcmp(instr->mneumonic, "bne") == 0)
     bne(instr);
-  else if (strcmp(instr->mneumonic, "addi") == 0)
-    addi(instr);
   else if (strcmp(instr->mneumonic, "sll") == 0)
     sll(instr);
   else if (strcmp(instr->mneumonic, "jr") == 0)
@@ -204,8 +216,6 @@ void readInstruction(int index, instruction *instr) {
 void handleInstruction(int index) {
   unsigned int instr = mem[index];
   int memLocation = index * 4;
-
-  instructionCount++;
 }
 
 void printInstruction(instruction *instr) {
@@ -543,26 +553,37 @@ void loadBinaryFile() {
 /*******************************************************/
 
 void printRegisters() {
-
+  int idx;
+  for (idx = 0; idx < 32; idx++) {
+    printf("R%02d: %05d | ", idx, Reg[idx]);
+    if ((idx + 1) % 7 == 0) {
+      printf("\n");
+    }
+  }
+  printf("\n");
 }
 
 /*******************************************************/
 /*******************************************************/
 
 void lw(instruction *instr) {
-  int rt = getReg(instr->rt);
-  int rs = getReg(instr->rt);
-  int imm = getReg(instr->imm);
-  // LOAD FROM MEMORY HERE
+  int rt = instr->rt;
+  int rs = instr->rs;
+  short imm = instr->imm * 4;
   //rt = M[rs + s.imm]
-  printf("Executed lw\n");
+  int oldRt = Reg[rt];
+  printf("rt: %d\n", rt);
+  printf("Reg[rt]: %d\n", Reg[rt]);
+  Reg[rt] = mem[Reg[rs] + imm];
+  memRefCount++;
+  printf("Executed LW; rt: %x -> %x\n", oldRt, Reg[rt]);
 }
 
 void jal(instruction *instr) {
-  int index = instr->index;
+  int index = userMemoryBase - 4 + instr->index * 4;
   Reg[31] = pc;
   pc = index;
-  printf("Executed jal\n");
+  printf("Executed JAL\n");
 }
 
 void and(instruction *instr) {
@@ -586,13 +607,15 @@ void ori(instruction *instr) {
 
 void beq(instruction *instr) {
   int rs = instr->rs;
-  int rt = instr->rs;
-  int imm = instr->imm;
+  int rt = instr->rt;
+  short imm = (instr->imm * 4);
   int oldPC = pc;
   if (Reg[rs] == Reg[rt]) {
     pc += imm;
+    printf("Executed beq[BRANCHING]; pc: %d -> %d \n", oldPC, pc);
+  } else {
+    printf("Executed beq[no-br]; pc: %d -> %d \n", oldPC, pc);
   }
-  printf("Executed beq; pc: %d -> %d \n", oldPC, pc);
 }
 
 void systemCall(instruction *instr) {
@@ -636,14 +659,16 @@ void sll(instruction *instr) {
 
 void bne(instruction *instr) {
   int rs = instr->rs;
-  int rt = instr->rs;
-  short imm = instr->imm;
+  int rt = instr->rt;
+  short imm = instr->imm * 4;
   int oldPC = pc;
 
   if (Reg[rs] != Reg[rt]) {
     pc += imm;
+    printf("Executed bne [BRANCHING]; pc: %d -> %d \n", oldPC, pc);
+  } else {
+    printf("Executed bne [no-br]; pc: %d -> %d \n", oldPC, pc);
   }
-  printf("Executed bne; pc: %d -> %d \n", oldPC, pc);
 }
 
 void jr(instruction *instr) {
@@ -840,6 +865,7 @@ void lb(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  memRefCount++;
 
   Reg[rt] = (char)(mem[Reg[rs]] + imm);
 }
@@ -848,6 +874,7 @@ void lbu(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  memRefCount++;
 
   Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
 }
@@ -856,6 +883,7 @@ void lh(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  memRefCount++;
 
   Reg[rt] = (short)(mem[Reg[rs]] + imm);
 }
@@ -866,6 +894,7 @@ void lhu(instruction *instr) {
   int rt = instr->rt;
   int imm = instr->imm;
 
+  memRefCount++;
   Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
 }
 
@@ -874,6 +903,7 @@ void sb(instruction *instr) {
   int rt = instr->rt;
   int imm = instr->imm;
 
+  memRefCount++;
   mem[Reg[rs] + imm] = (char)Reg[rt];
 }
 
@@ -882,6 +912,7 @@ void sh(instruction *instr) {
   int rt = instr->rt;
   int imm = instr->imm;
 
+  memRefCount++;
   mem[Reg[rs] + imm] = (short)Reg[rt];
   printf("Executed LW;");
 }
@@ -893,6 +924,7 @@ void sw(instruction *instr) {
   int rt = instr->rt;
   int imm = instr->imm;
 
+  memRefCount++;
   mem[Reg[rs] + imm] = Reg[rt];
   printf("Executed LW;");
 }
