@@ -159,6 +159,8 @@ void executeInstruction(instruction *instr) {
     jr(instr);
   else if (strcmp(instr->mneumonic, "or") == 0)
     or(instr);
+  else
+    printf("ELSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %s\n", instr->mneumonic);
 
 }
 
@@ -551,18 +553,22 @@ void printRegisters() {
 
 void lw(instruction *instr) {
   int rt = getReg(instr->rt);
+  int oldRt = rt;
   int rs = getReg(instr->rt);
   int imm = getReg(instr->imm);
-  // LOAD FROM MEMORY HERE
-  //rt = M[rs + s.imm]
-  printf("Executed lw\n");
+
+  /*Reg[rt] = mem[Reg[rs] + imm];*/
+  printf("Executed lw; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void jal(instruction *instr) {
   int index = instr->index;
-  Reg[31] = pc;
+  int oldRa = Reg[31];
+  int oldPc = pc;
+  /* Changed to +4 */
+  Reg[31] = pc + 4;
   pc = index;
-  printf("Executed jal\n");
+  printf("Executed jal; ra: %d -> %d pc: %d -> %d\n", oldRa, Reg[31], oldPc, Reg[pc]);
 }
 
 void and(instruction *instr) {
@@ -590,7 +596,8 @@ void beq(instruction *instr) {
   int imm = instr->imm;
   int oldPC = pc;
   if (Reg[rs] == Reg[rt]) {
-    pc += imm;
+    /* Changed to +4 */
+    pc += imm + 4;
   }
   printf("Executed beq; pc: %d -> %d \n", oldPC, pc);
 }
@@ -641,7 +648,8 @@ void bne(instruction *instr) {
   int oldPC = pc;
 
   if (Reg[rs] != Reg[rt]) {
-    pc += imm;
+    /* Changed to +4 */
+    pc += imm + 4;
   }
   printf("Executed bne; pc: %d -> %d \n", oldPC, pc);
 }
@@ -772,9 +780,12 @@ void jalr(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
   int rd = instr->rd;
+  int oldPc = pc;
+  int oldRa = Reg[31];
 
   pc = Reg[rs];
   Reg[31] = pc + 4;
+  printf("Executed jalr; pc: %d -> %d ra: %d -> %d\n", oldPc, Reg[pc], Reg[31], oldRa);
 }
 
 void addiu(instruction *instr) {
@@ -811,7 +822,7 @@ void slti(instruction *instr) {
   int oldRt = Reg[rt];
   if (rs < imm) {
     Reg[rt] = 1;
-  } 
+  }
   else {
     Reg[rt] = 0;
   }
@@ -825,7 +836,7 @@ void sltiu(instruction *instr) {
   int oldRt = Reg[rt];
   if ((unsigned int)rs < imm) {
     Reg[rt] = 1;
-  } 
+  }
   else {
     Reg[rt] = 0;
   }
@@ -833,31 +844,41 @@ void sltiu(instruction *instr) {
 }
 
 void j(instruction *instr) {
+  int oldPc = pc;
+
   pc = instr->index;
+  printf("Executed j; pc: %d -> %d \n", oldPc, pc);
 }
 
 void lb(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  int oldRt = rt;
 
   Reg[rt] = (char)(mem[Reg[rs]] + imm);
+  printf("Executed lb; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void lbu(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  int oldRt = Reg[rt];
 
   Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
+  printf("Executed lbu; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void lh(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  int oldRt = Reg[rt];
 
   Reg[rt] = (short)(mem[Reg[rs]] + imm);
+  printf("Executed lh; rt: %d -> %d \n", oldRt, Reg[rt]);
+
 }
 
 /* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
@@ -865,8 +886,11 @@ void lhu(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int imm = instr->imm;
+  int oldRt = Reg[rt];
 
   Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
+  printf("Executed lhu; rt: %d -> %d \n", oldRt, Reg[rt]);
+
 }
 
 void sb(instruction *instr) {
@@ -875,6 +899,7 @@ void sb(instruction *instr) {
   int imm = instr->imm;
 
   mem[Reg[rs] + imm] = (char)Reg[rt];
+  printf("Executed sb;");
 }
 
 void sh(instruction *instr) {
