@@ -33,6 +33,8 @@ unsigned int pc;
 int memOffset = 0;
 int instructionCount = 0;
 int exitTriggered = 0;
+int userMemoryBase = 300;
+int mockEntryPoint = 4;
 
 int main() {
   int mode;
@@ -41,6 +43,11 @@ int main() {
   Reg[0] = 0;
 
   loadBinaryFile();
+
+  printf("mb_hdr.entry: %d \n", mb_hdr.entry);
+
+  loadMemory();
+
 
   printf("Would you like to start in (1) 'single step' mode or in (2) 'run' mode?\n");
   scanf(" %d", &answer);
@@ -61,17 +68,28 @@ int main() {
   exit(0);
 }
 
+void loadMemory() {
+  int entryPoint = mockEntryPoint;
+
+  int idx;
+  for (idx = 0; idx < entryPoint; idx += 4) {
+    mem[idx / 4];
+  }
+
+}
+
 void startSimulation(int mode) {
   int byteOffset;
   int memIndex;
   unsigned int rawInstruction;
   instruction instr;
-  pc = 0;
+  pc = userMemoryBase;
 
   /* now dump out the instructions loaded */
 
   while (!exitTriggered) {
-    unsigned int rawInstruction = fetchInstruction(pc);
+    printf("pc: %d\n", pc);
+    unsigned int rawInstruction = fetchInstruction();
     instruction instr;
     instr.address = pc;
     decodeInstruction(rawInstruction, &instr);
@@ -87,12 +105,15 @@ void startSimulation(int mode) {
   }
 }
 
-unsigned int fetchInstruction(unsigned int pc) {
-  return mem[pc];
+unsigned int fetchInstruction() {
+  unsigned int instr = mem[pc / 4];
+  printf("instr: %d\n", instr);
+  pc = pc + 4;
+  return instr;
+
 }
 
 void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
-  pc++;
   instr->raw = rawInstruction;
   instr->type = getType(&rawInstruction);
   instr->opcode = getOpcode(&rawInstruction);
@@ -490,9 +511,18 @@ void loadBinaryFile() {
     exit(98);
   }
 
+  printf("mb_hdr.entry: %d \n", mb_hdr.entry);
   printf("\n%s Loaded ok, program size=%d bytes.\n\n", filename, mb_hdr.size);
 
   /* read the binary code a word at a time */
+  while ((memOffset / 4) < mockEntryPoint / 4) {
+    printf("load memory item\n");
+    n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
+    (memOffset) += 4;
+  }
+
+  memOffset = userMemoryBase;
+
   do {
     n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
 
@@ -506,6 +536,13 @@ void loadBinaryFile() {
   } while ((memOffset) < sizeof(mem));
 
   fclose(fd);
+
+}
+
+/*******************************************************/
+/*******************************************************/
+
+void printRegisters() {
 
 }
 
@@ -793,21 +830,53 @@ void j(instruction *instr) {
 }
 
 void lb(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (char)(mem[Reg[rs]] + imm);
 }
 
 void lbu(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
 }
 
 void lh(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (short)(mem[Reg[rs]] + imm);
 }
 
+/* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
 void lhu(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
 }
 
 void sb(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = (char)Reg[rt];
 }
 
 void sh(instruction *instr) {
+  int rs = instr->rs;
+  int rt = instr->rt;
+  int imm = instr->imm;
+
+  mem[Reg[rs] + imm] = (short)Reg[rt];
+  printf("Executed LW;");
 }
 
 /* UNTESTED!!! */
