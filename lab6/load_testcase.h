@@ -1,6 +1,6 @@
 
 typedef struct instruction {
-  unsigned int address; 
+  unsigned int address;
   unsigned int raw;
   int opcode;
   int isSyscall;
@@ -75,12 +75,17 @@ void sub(instruction *instr);
 void subu(instruction *instr);
 void nor(instruction *instr);
 void xor(instruction *instr);
+void srl(instruction *instr);
+void sra(instruction *instr);
+void sllv(instruction *instr);
+void srlv(instruction *instr);
 void srav(instruction *instr);
 void slt(instruction *instr);
 void sltu(instruction *instr);
 void jalr(instruction *instr);
 void addiu(instruction *instr);
 void andi(instruction *instr);
+void xori(instruction *instr);
 void slti(instruction *instr);
 void sltiu(instruction *instr);
 void j(instruction *instr);
