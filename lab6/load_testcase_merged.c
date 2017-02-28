@@ -13,7 +13,6 @@
 
 //#define FILENAME "countbits_benchmark2.mb"
 #define FILENAME "diagnostics.mb"
-//#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
 #define FIXED 2
@@ -1057,17 +1056,9 @@ void sltiu(instruction *instr) {
 }
 
 void j(instruction *instr) {
-  int rd = instr->rd;
-  int imm = instr->imm;
+  pc = instr->index;
   instr->numClockCycles = 3;
   totalClockCycles += 3;
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[imm];
-  printf("Executed J; rd: %d -> %d \n", oldRd, Reg[rd]);
-
-  int oldPc = pc;
-  pc = instr->index;
-  printf("Executed j; pc: %d -> %d \n", oldPc, pc);
 }
 
 void lb(instruction *instr) {

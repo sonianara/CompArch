@@ -13,7 +13,6 @@
 
 //#define FILENAME "countbits_benchmark2.mb"
 #define FILENAME "diagnostics.mb"
-//#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
 #define FIXED 2
@@ -40,7 +39,6 @@ int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int entryPoint;
-int totalClockCycles = 0;
 //int mockEntryPoint = 4;
 
 int main() {
@@ -71,7 +69,6 @@ int main() {
   printf("\n\nSimulation complete.\n");
   printf("Number of instructions simulated: %d\n", instructionCount);
   printf("Number of memory references: %d\n", memRefCount);
-  printf("Total clock cycles: %d\n", totalClockCycles);
   printf("\n");
   exit(0);
 }
@@ -154,39 +151,9 @@ void executeInstruction(instruction *instr) {
   printf("Execute `%s` type instruction\n", instr->mneumonic);
   instructionCount++;
 
-//  if (instr->isSyscall)
-//    systemCall(instr);
-//
-//  else if (strcmp(instr->mneumonic, "add") == 0)
-//    add(instr);
-//  else if (strcmp(instr->mneumonic, "addi") == 0)
-//    addi(instr);
-//  else if (strcmp(instr->mneumonic, "lw") == 0)
-//    lw(instr);
-//  else if (strcmp(instr->mneumonic, "jal") == 0)
-//    jal(instr);
-//  else if (strcmp(instr->mneumonic, "and") == 0)
-//    and(instr);
-//  else if (strcmp(instr->mneumonic, "ori") == 0)
-//    ori(instr);
-//  else if (strcmp(instr->mneumonic, "beq") == 0)
-//    beq(instr);
-//  else if (strcmp(instr->mneumonic, "bne") == 0)
-//    bne(instr);
-//  else if (strcmp(instr->mneumonic, "sll") == 0)
-//    sll(instr);
-//  else if (strcmp(instr->mneumonic, "jr") == 0)
-//    jr(instr);
-//  else if (strcmp(instr->mneumonic, "or") == 0)
-//    or(instr);
-
-
-
-
-
-
   if (instr->isSyscall)
     systemCall(instr);
+
   else if (strcmp(instr->mneumonic, "add") == 0)
     add(instr);
   else if (strcmp(instr->mneumonic, "addi") == 0)
@@ -209,69 +176,6 @@ void executeInstruction(instruction *instr) {
     jr(instr);
   else if (strcmp(instr->mneumonic, "or") == 0)
     or(instr);
-  else if (strcmp(instr->mneumonic, "add") == 0)
-    add(instr);
-  else if (strcmp(instr->mneumonic, "addu") == 0)
-    addu(instr);
-  else if (strcmp(instr->mneumonic, "sub") == 0)
-    sub(instr);
-  else if (strcmp(instr->mneumonic, "subu") == 0)
-    subu(instr);
-  else if (strcmp(instr->mneumonic, "nor") == 0)
-    nor(instr);
-  else if (strcmp(instr->mneumonic, "xor") == 0)
-    xor(instr);
-  else if (strcmp(instr->mneumonic, "srl") == 0)
-    srl(instr);
-  else if (strcmp(instr->mneumonic, "sra") == 0)
-    sra(instr);
-  else if (strcmp(instr->mneumonic, "sllv") == 0)
-    sllv(instr);
-  else if (strcmp(instr->mneumonic, "srlv") == 0)
-    srlv(instr);
-  else if (strcmp(instr->mneumonic, "or") == 0)
-    srav(instr);
-  else if (strcmp(instr->mneumonic, "slt") == 0)
-    slt(instr);
-  else if (strcmp(instr->mneumonic, "sltu") == 0)
-    sltu(instr);
-  else if (strcmp(instr->mneumonic, "jalr") == 0)
-    jalr(instr);
-  else if (strcmp(instr->mneumonic, "addiu") == 0)
-    addiu(instr);
-  else if (strcmp(instr->mneumonic, "andi") == 0)
-    andi(instr);
-  else if (strcmp(instr->mneumonic, "xori") == 0)
-    xori(instr);
-  else if (strcmp(instr->mneumonic, "slti") == 0)
-    slti(instr);
-  else if (strcmp(instr->mneumonic, "sltiu") == 0)
-    sltiu(instr);
-  else if (strcmp(instr->mneumonic, "j") == 0)
-    j(instr);
-  else if (strcmp(instr->mneumonic, "lb") == 0)
-    lb(instr);
-  else if (strcmp(instr->mneumonic, "lbu") == 0)
-    lbu(instr);
-  else if (strcmp(instr->mneumonic, "lh") == 0)
-    lh(instr);
-  else if (strcmp(instr->mneumonic, "lhu") == 0)
-    lhu(instr);
-  else if (strcmp(instr->mneumonic, "sb") == 0)
-    sb(instr);
-  else if (strcmp(instr->mneumonic, "sh") == 0)
-    sh(instr);
-  else if (strcmp(instr->mneumonic, "sw") == 0)
-    sw(instr);
-
-
-
-
-
-
-
-
-
 
 }
 
@@ -349,6 +253,8 @@ void printInstruction(instruction *instr) {
   } else {
 
   }
+
+
 
   printf("\n");
 }
@@ -687,8 +593,6 @@ void lw(instruction *instr) {
   Reg[rt] = mem[Reg[rs] + imm];
   memRefCount++;
   printf("Executed LW; rt: %x -> %x\n", oldRt, Reg[rt]);
-  instr->numClockCycles = 5;
-  totalClockCycles += 5;
 }
 
 void jal(instruction *instr) {
@@ -696,16 +600,13 @@ void jal(instruction *instr) {
   Reg[31] = pc;
   pc = index;
   printf("Executed JAL\n");
-  instr->numClockCycles = 3;
-  totalClockCycles += 3;
 }
 
 void and(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
+
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] & Reg[rt];
   printf("Executed AND; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -718,8 +619,6 @@ void ori(instruction *instr) {
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] | imm;
   printf("Executed ORI; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void beq(instruction *instr) {
@@ -727,8 +626,6 @@ void beq(instruction *instr) {
   int rt = instr->rt;
   short imm = (instr->imm * 4);
   int oldPC = pc;
-  instr->numClockCycles = 3;
-  totalClockCycles += 3;
   if (Reg[rs] == Reg[rt]) {
     pc += imm;
     printf("Executed beq[BRANCHING]; pc: %d -> %d \n", oldPC, pc);
@@ -757,7 +654,6 @@ void systemCall(instruction *instr) {
   }
 }
 
-// TO-DO NUMBER OF CLOCK CYCLES????
 void addi(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
@@ -765,11 +661,8 @@ void addi(instruction *instr) {
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] + imm;
   printf("Executed ADDI; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
-//TO-DO NUMBER OF CLOCK CYCLES????
 void sll(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rd;
@@ -778,8 +671,6 @@ void sll(instruction *instr) {
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rt] << shamt;
   printf("Executed SLL; rd: %d -> %d \n", oldRd, Reg[rd]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void bne(instruction *instr) {
@@ -787,8 +678,7 @@ void bne(instruction *instr) {
   int rt = instr->rt;
   short imm = instr->imm * 4;
   int oldPC = pc;
-  instr->numClockCycles = 3;
-  totalClockCycles += 3;
+
   if (Reg[rs] != Reg[rt]) {
     pc += imm;
     printf("Executed bne [BRANCHING]; pc: %d -> %d \n", oldPC, pc);
@@ -801,8 +691,6 @@ void jr(instruction *instr) {
   int rs = instr->rs;
   int oldPC = pc;
   pc = Reg[rs];
-  instr->numClockCycles = 3;
-  totalClockCycles += 3;
   printf("Executed jr; pc: %d -> %d \n", oldPC, pc);
 }
 
@@ -811,8 +699,6 @@ void or(instruction *instr) {
   int rs = instr->rs;
   int rt = instr->rt;
   int oldRd = Reg[rd];
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   Reg[rd] = Reg[rs] | Reg[rt];
   printf("Executed or; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
@@ -822,8 +708,6 @@ void add(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   //check for overflow???
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] + Reg[rt];
@@ -835,8 +719,6 @@ void addu(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   //no overflow
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] + Reg[rt];
@@ -849,8 +731,6 @@ void sub(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] - Reg[rt];
   printf("Executed SUB; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -862,8 +742,6 @@ void subu(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = Reg[rs] - Reg[rt];
   printf("Executed SUBU; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -874,8 +752,6 @@ void nor(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
 
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int oldRd = Reg[rd];
   Reg[rd] = ~(Reg[rs] | Reg[rt]);
   printf("Executed NOR; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -885,70 +761,28 @@ void xor(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] ^ Reg[rt]);
   printf("Executed XOR; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
-//TO-DO NUMBER OF CLOCK CYCLES?????
 void srl(instruction *instr) {
-  int rd = instr->rd;
-  int rt = instr->rt;
-  int shamt = instr->shamt;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
-
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[rt] >> shamt;
-  Reg[rd] &= ~(1 << 31);
-  printf("Executed SRL; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sra(instruction *instr) {
-  int rd = instr->rd;
-  int rt = instr->rt;
-  int shamt = instr->shamt;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
-
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[rt] >> shamt;
-  printf("Executed SRA; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void sllv(instruction *instr) {
-  int rd = instr->rd;
-  int rt = instr->rt;
-  int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
-
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[rt] << Reg[rs];
-  printf("Executed SLLV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void srlv(instruction *instr) {
-  int rd = instr->rd;
-  int rt = instr->rt;
-  int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
-
-  int oldRd = Reg[rd];
-  Reg[rd] = (Reg[rt] >> Reg[rs]);
-  printf("Executed SRLV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void srav(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rt] >> Reg[rs]);
@@ -959,8 +793,7 @@ void slt(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
+
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] < Reg[rt]);
   printf("Executed SLT; rd: %d -> %d \n", oldRd, Reg[rd]);
@@ -970,25 +803,19 @@ void sltu(instruction *instr) {
   int rd = instr->rd;
   int rt = instr->rt;
   int rs = instr->rs;
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
+
   int oldRd = Reg[rd];
   Reg[rd] = (Reg[rs] < Reg[rt]);
   printf("Executed SLTU; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
 void jalr(instruction *instr) {
-  instr-> numClockCycles = 3;
-  totalClockCycles += 3;
   int rt = instr->rt;
   int rs = instr->rs;
   int rd = instr->rd;
-  int oldPc = pc;
-  int oldRa = Reg[31];
 
   pc = Reg[rs];
   Reg[31] = pc + 4;
-  printf("Executed jalr; pc: %d -> %d ra: %d -> %d\n", oldPc, Reg[pc], Reg[31], oldRa);
 }
 
 void addiu(instruction *instr) {
@@ -998,8 +825,6 @@ void addiu(instruction *instr) {
   int oldRt = Reg[rt];
   Reg[rt] = (unsigned int)Reg[rs] + imm;
   printf("Executed ADDIU; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void andi(instruction *instr) {
@@ -1009,19 +834,6 @@ void andi(instruction *instr) {
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] & imm;
   printf("Executed ANDI; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
-}
-
-void xori(instruction *instr) {
-  int rt = instr->rt;
-  int rs = instr->rs;
-  short imm = instr->imm;
-  int oldRt = Reg[rt];
-  Reg[rt] = Reg[rs] ^ imm;
-  printf("Executed XORI; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void slti(instruction *instr) {
@@ -1036,8 +848,6 @@ void slti(instruction *instr) {
     Reg[rt] = 0;
   }
   printf("Executed SLTI; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void sltiu(instruction *instr) {
@@ -1052,39 +862,22 @@ void sltiu(instruction *instr) {
     Reg[rt] = 0;
   }
   printf("Executed SLTIU; rt: %d -> %d \n", oldRt, Reg[rt]);
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
 }
 
 void j(instruction *instr) {
-  int rd = instr->rd;
-  int imm = instr->imm;
-  instr->numClockCycles = 3;
-  totalClockCycles += 3;
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[imm];
-  printf("Executed J; rd: %d -> %d \n", oldRd, Reg[rd]);
-
-  int oldPc = pc;
   pc = instr->index;
-  printf("Executed j; pc: %d -> %d \n", oldPc, pc);
 }
 
 void lb(instruction *instr) {
-  instr->numClockCycles = 5;
-  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
   memRefCount++;
 
   Reg[rt] = (char)(mem[Reg[rs]] + imm);
-  //printf("Executed lb; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void lbu(instruction *instr) {
-  instr->numClockCycles = 5;
-  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
@@ -1094,8 +887,6 @@ void lbu(instruction *instr) {
 }
 
 void lh(instruction *instr) {
-  instr->numClockCycles = 5;
-  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
@@ -1106,8 +897,6 @@ void lh(instruction *instr) {
 
 /* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
 void lhu(instruction *instr) {
-  instr->numClockCycles = 5;
-  totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
@@ -1117,8 +906,6 @@ void lhu(instruction *instr) {
 }
 
 void sb(instruction *instr) {
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
@@ -1128,8 +915,6 @@ void sb(instruction *instr) {
 }
 
 void sh(instruction *instr) {
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
@@ -1142,8 +927,6 @@ void sh(instruction *instr) {
 /* UNTESTED!!! */
 /* M[R[rs]+SignExtImm]=R[rt]  */
 void sw(instruction *instr) {
-  instr->numClockCycles = 4;
-  totalClockCycles += 4;
   int rs = instr->rs;
   int rt = instr->rt;
   short imm = instr->imm;
