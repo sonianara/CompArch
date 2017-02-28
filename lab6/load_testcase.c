@@ -769,6 +769,12 @@ void sltu(instruction *instr) {
 }
 
 void jalr(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int rd = instr->rd;
+
+  pc = Reg[rs];
+  Reg[31] = pc + 4;
 }
 
 void addiu(instruction *instr) {
@@ -793,6 +799,7 @@ void sltiu(instruction *instr) {
 }
 
 void j(instruction *instr) {
+  pc = instr->index;
 }
 
 void lb(instruction *instr) {
