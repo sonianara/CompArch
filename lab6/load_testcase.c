@@ -84,10 +84,14 @@ void startSimulation(int mode) {
   unsigned int rawInstruction;
   instruction instr;
   pc = userMemoryBase;
+  int count = 0;
 
   /* now dump out the instructions loaded */
 
   while (!exitTriggered) {
+    if(count >10)
+      break;
+    count++;
     printf("pc: %d\n", pc);
     unsigned int rawInstruction = fetchInstruction();
     instruction instr;
@@ -159,9 +163,60 @@ void executeInstruction(instruction *instr) {
     jr(instr);
   else if (strcmp(instr->mneumonic, "or") == 0)
     or(instr);
-  else
-    printf("ELSE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! %s\n", instr->mneumonic);
-
+  else if (strcmp(instr->mneumonic, "add") == 0)
+    add(instr);
+  else if (strcmp(instr->mneumonic, "addu") == 0)
+    addu(instr);
+  else if (strcmp(instr->mneumonic, "sub") == 0)
+    sub(instr);
+  else if (strcmp(instr->mneumonic, "subu") == 0)
+    subu(instr);
+  else if (strcmp(instr->mneumonic, "nor") == 0)
+    nor(instr);
+  else if (strcmp(instr->mneumonic, "xor") == 0)
+    xor(instr);
+  else if (strcmp(instr->mneumonic, "srl") == 0)
+    srl(instr);
+  else if (strcmp(instr->mneumonic, "sra") == 0)
+    sra(instr);
+  else if (strcmp(instr->mneumonic, "sllv") == 0)
+    sllv(instr);
+  else if (strcmp(instr->mneumonic, "srlv") == 0)
+    srlv(instr);
+  else if (strcmp(instr->mneumonic, "or") == 0)
+    srav(instr);
+  else if (strcmp(instr->mneumonic, "slt") == 0)
+    slt(instr);
+  else if (strcmp(instr->mneumonic, "sltu") == 0)
+    sltu(instr);
+  else if (strcmp(instr->mneumonic, "jalr") == 0)
+    jalr(instr);
+  else if (strcmp(instr->mneumonic, "addiu") == 0)
+  addiu(instr);
+  else if (strcmp(instr->mneumonic, "andi") == 0)
+    andi(instr);
+  else if (strcmp(instr->mneumonic, "xori") == 0)
+    xori(instr);
+  else if (strcmp(instr->mneumonic, "slti") == 0)
+    slti(instr);
+  else if (strcmp(instr->mneumonic, "sltiu") == 0)
+    sltiu(instr);
+  else if (strcmp(instr->mneumonic, "j") == 0)
+    j(instr);
+  else if (strcmp(instr->mneumonic, "lb") == 0)
+    lb(instr);
+  else if (strcmp(instr->mneumonic, "lbu") == 0)
+    lbu(instr);
+  else if (strcmp(instr->mneumonic, "lh") == 0)
+    lh(instr);
+  else if (strcmp(instr->mneumonic, "lhu") == 0)
+    lhu(instr);
+  else if (strcmp(instr->mneumonic, "sb") == 0)
+    sb(instr);
+  else if (strcmp(instr->mneumonic, "sh") == 0)
+    sh(instr);
+  else if (strcmp(instr->mneumonic, "sw") == 0)
+    sw(instr);
 }
 
 void loopMem() {
