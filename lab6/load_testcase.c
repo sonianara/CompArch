@@ -778,9 +778,21 @@ void jalr(instruction *instr) {
 }
 
 void addiu(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = (unsigned int)Reg[rs] + imm;
+  printf("Executed ADDIU; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void andi(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  Reg[rt] = Reg[rs] & imm;
+  printf("Executed ANDI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void xori(instruction *instr) {
@@ -793,9 +805,31 @@ void xori(instruction *instr) {
 }
 
 void slti(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  if (rs < imm) {
+    Reg[rt] = 1;
+  } 
+  else {
+    Reg[rt] = 0;
+  }
+  printf("Executed SLTI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void sltiu(instruction *instr) {
+  int rt = instr->rt;
+  int rs = instr->rs;
+  int imm = instr->imm;
+  int oldRt = Reg[rt];
+  if ((unsigned int)rs < imm) {
+    Reg[rt] = 1;
+  } 
+  else {
+    Reg[rt] = 0;
+  }
+  printf("Executed SLTIU; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void j(instruction *instr) {
