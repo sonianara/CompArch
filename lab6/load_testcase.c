@@ -96,7 +96,7 @@ void startSimulation(int mode) {
     instruction instr;
     instr.address = pc;
     decodeInstruction(rawInstruction, &instr);
-    instr.numberClockCycles = 2;
+    instr.numClockCycles = 2;
 
     printInstruction(&instr);
     executeInstruction(&instr);
@@ -152,7 +152,6 @@ void executeInstruction(instruction *instr) {
     add(instr);
   else if (strcmp(instr->mneumonic, "addi") == 0)
     addi(instr);
-
   else if (strcmp(instr->mneumonic, "lw") == 0)
     lw(instr);
   else if (strcmp(instr->mneumonic, "jal") == 0)
@@ -818,15 +817,6 @@ void andi(instruction *instr) {
   int oldRt = Reg[rt];
   Reg[rt] = Reg[rs] & imm;
   printf("Executed ANDI; rt: %d -> %d \n", oldRt, Reg[rt]);
-}
-
-void xori(instruction *instr) {
-  int rt = instr->rt;
-  int rs = instr->rs;
-  int imm = instr->imm;
-  int oldRt = Reg[rt];
-  Reg[rt] = Reg[rs] ^ imm;
-  printf("Executed XORI; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void slti(instruction *instr) {

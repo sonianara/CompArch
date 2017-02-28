@@ -69,4 +69,32 @@ void bne(instruction *instr);
 void sll(instruction *instr);
 void jr(instruction *instr);
 void or(instruction *instr);
+void add(instruction *instr);
+void addu(instruction *instr);
+void sub(instruction *instr);
+void subu(instruction *instr);
+void nor(instruction *instr);
+void xor(instruction *instr);
+void srav(instruction *instr);
+void slt(instruction *instr);
+void sltu(instruction *instr);
+void jalr(instruction *instr);
+void addiu(instruction *instr);
+void andi(instruction *instr);
+void slti(instruction *instr);
+void sltiu(instruction *instr);
+void j(instruction *instr);
+void lb(instruction *instr);
+void lbu(instruction *instr);
+void lh(instruction *instr);
+void lhu(instruction *instr);
+void sb(instruction *instr);
+void sh(instruction *instr);
+void sw(instruction *instr);
+
+
+//void srl(instruction *instr);
+//void sra(instruction *instr);
+//void sllv(instruction *instr);
+//void srlv(instruction *instr);
 
