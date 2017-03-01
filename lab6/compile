@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gcc -o load_testcase load_testcase.c
+gcc -o load_testcase driver.c
 
 if [[ $? == 0 ]]; then
 
