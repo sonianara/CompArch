@@ -9,7 +9,7 @@
 #include <string.h>
 
 #include "mips_asm_header.h"
-#include "load_testcase.h"
+#include "driver.h"
 
 #define FILENAME "countbits_benchmark2.mb"
 //#define FILENAME "diagnostics.mb"
@@ -40,7 +40,6 @@ int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int entryPoint;
-//entryPoint = 4;
 int totalClockCycles = 0;
 //int mockEntryPoint = 4;
 
@@ -623,6 +622,7 @@ void loadBinaryFile() {
   /* read the binary code a word at a time */
 
   entryPoint = mb_hdr.entry;
+  entryPoint = 4;
   printf("EntryPoint: %d\n", entryPoint);
 
   while ((memOffset / 4) < entryPoint / 4) {
