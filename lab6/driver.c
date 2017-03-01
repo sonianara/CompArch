@@ -11,8 +11,8 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
-#define FILENAME "countbits_benchmark2.mb"
-//#define FILENAME "diagnostics.mb"
+//#define FILENAME "countbits_benchmark2.mb"
+#define FILENAME "diagnostics.mb"
 //#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
@@ -40,7 +40,6 @@ int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int entryPoint;
-//entryPoint = 4;
 int totalClockCycles = 0;
 //int mockEntryPoint = 4;
 
@@ -623,6 +622,7 @@ void loadBinaryFile() {
   /* read the binary code a word at a time */
 
   entryPoint = mb_hdr.entry;
+  //entryPoint = 4;
   printf("EntryPoint: %d\n", entryPoint);
 
   while ((memOffset / 4) < entryPoint / 4) {
@@ -762,7 +762,7 @@ void addi(instruction *instr) {
 //TO-DO NUMBER OF CLOCK CYCLES????
 void sll(instruction *instr) {
   int rd = instr->rd;
-  int rt = instr->rd;
+  int rt = instr->rt;
   int shamt = instr->shamt;
 
   int oldRd = Reg[rd];
@@ -905,7 +905,7 @@ void sra(instruction *instr) {
   totalClockCycles += 4;
 
   int oldRd = Reg[rd];
-  Reg[rd] = Reg[rt] >> shamt;
+  Reg[rd] = (signed int)Reg[rt] >> shamt;
   printf("Executed SRA; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
