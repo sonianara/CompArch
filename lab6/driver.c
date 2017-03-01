@@ -11,8 +11,8 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
-//#define FILENAME "countbits_benchmark2.mb"
-#define FILENAME "diagnostics.mb"
+#define FILENAME "countbits_benchmark2.mb"
+//#define FILENAME "diagnostics.mb"
 //#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
@@ -40,6 +40,7 @@ int memRefCount = 0;
 int exitTriggered = 0;
 int userMemoryBase = 300;
 int entryPoint;
+//entryPoint = 4;
 int totalClockCycles = 0;
 //int mockEntryPoint = 4;
 
@@ -182,9 +183,6 @@ void executeInstruction(instruction *instr) {
 
 
 
-
-
-
   if (instr->isSyscall)
     systemCall(instr);
   else if (strcmp(instr->mneumonic, "add") == 0)
@@ -263,14 +261,6 @@ void executeInstruction(instruction *instr) {
     sh(instr);
   else if (strcmp(instr->mneumonic, "sw") == 0)
     sw(instr);
-
-
-
-
-
-
-
-
 
 
 }
