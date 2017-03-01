@@ -11,8 +11,8 @@
 #include "mips_asm_header.h"
 #include "load_testcase.h"
 
-//#define FILENAME "countbits_benchmark2.mb"
-#define FILENAME "diagnostics.mb"
+#define FILENAME "countbits_benchmark2.mb"
+//#define FILENAME "diagnostics.mb"
 //#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
