@@ -156,34 +156,6 @@ void executeInstruction(instruction *instr) {
   printf("Execute `%s` type instruction\n", instr->mneumonic);
   instructionCount++;
 
-//  if (instr->isSyscall)
-//    systemCall(instr);
-//
-//  else if (strcmp(instr->mneumonic, "add") == 0)
-//    add(instr);
-//  else if (strcmp(instr->mneumonic, "addi") == 0)
-//    addi(instr);
-//  else if (strcmp(instr->mneumonic, "lw") == 0)
-//    lw(instr);
-//  else if (strcmp(instr->mneumonic, "jal") == 0)
-//    jal(instr);
-//  else if (strcmp(instr->mneumonic, "and") == 0)
-//    and(instr);
-//  else if (strcmp(instr->mneumonic, "ori") == 0)
-//    ori(instr);
-//  else if (strcmp(instr->mneumonic, "beq") == 0)
-//    beq(instr);
-//  else if (strcmp(instr->mneumonic, "bne") == 0)
-//    bne(instr);
-//  else if (strcmp(instr->mneumonic, "sll") == 0)
-//    sll(instr);
-//  else if (strcmp(instr->mneumonic, "jr") == 0)
-//    jr(instr);
-//  else if (strcmp(instr->mneumonic, "or") == 0)
-//    or(instr);
-
-
-
   if (instr->isSyscall)
     systemCall(instr);
   else if (strcmp(instr->mneumonic, "add") == 0)
@@ -594,8 +566,6 @@ unsigned int getReg(int regNum) {
 
 void loadBinaryFile() {
   FILE *fd;
-  /* This is the filename to be loaded */
-  //char filename[] = "testcase1.mb";
   char filename[] = FILENAME;
   int byteOffset;
   int n;
@@ -1056,12 +1026,15 @@ void sltiu(instruction *instr) {
 
 void j(instruction *instr) {
   int index = instr->index;
-  index = userMemoryBase - 8 + instr->index * 4;
+  index = index << 2;
+  index = index | (pc & 0b11110000000000000000000000000000 );
+  index = userMemoryBase - entryPoint + index;
+  printf("index: %d\n", index);
+  //index = userMemoryBase - 8 + instr->index * 4;
 
   instr->numClockCycles = 3;
   totalClockCycles += 3;
 
-  printf("index: %d\n", index);
   int oldPc = pc;
   pc = index;
   //printf("pc[31:28]: %x\n", pc & 0b 00000000000000000000000000000000 );
