@@ -24,6 +24,8 @@
 #define J_TYPE 2
 #define INVALID_TYPE 2
 
+//#define PCGOTO 0x0400
+
 #define SINGLE_STEP 1
 #define RUN 2
 
@@ -38,7 +40,7 @@ int memOffset = 0;
 int instructionCount = 0;
 int memRefCount = 0;
 int exitTriggered = 0;
-int userMemoryBase = 300;
+int userMemoryBase = 0x300;
 int entryPoint;
 int totalClockCycles = 0;
 //int mockEntryPoint = 4;
@@ -107,7 +109,7 @@ void startSimulation(int mode) {
     printRegisters();
 
 
-    if (mode == SINGLE_STEP) {
+    if (mode == SINGLE_STEP) { // && pc > PCGOTO) {
       getchar();
     }
 
@@ -226,7 +228,7 @@ void executeInstruction(instruction *instr) {
     sllv(instr);
   else if (strcmp(instr->mneumonic, "srlv") == 0)
     srlv(instr);
-  else if (strcmp(instr->mneumonic, "or") == 0)
+  else if (strcmp(instr->mneumonic, "srav") == 0)
     srav(instr);
   else if (strcmp(instr->mneumonic, "slt") == 0)
     slt(instr);
@@ -669,11 +671,16 @@ void printRegisters() {
 void lw(instruction *instr) {
   int rt = instr->rt;
   int rs = instr->rs;
-  short imm = instr->imm * 4;
+  short imm = instr->imm / 4;
   //rt = M[rs + s.imm]
   int oldRt = Reg[rt];
   printf("rt: %d\n", rt);
   printf("Reg[rt]: %d\n", Reg[rt]);
+  printf("imm: %d\n", imm);
+  printf("rs: %d\n", rs);
+  printf("Reg[rs]: %d\n", Reg[rs]);
+  printf("Reg[rs] + imm: %d\n", Reg[rs] + imm);
+  printf("mem[Reg[rs]+imm]: %d\n", mem[Reg[rs] + (signed short)imm]);
   Reg[rt] = mem[Reg[rs] + imm];
   memRefCount++;
   printf("Executed LW; rt: %x -> %x\n", oldRt, Reg[rt]);
@@ -941,7 +948,8 @@ void srav(instruction *instr) {
   totalClockCycles += 4;
 
   int oldRd = Reg[rd];
-  Reg[rd] = (Reg[rt] >> Reg[rs]);
+
+  Reg[rd] = ((signed int)Reg[rt] >> Reg[rs]);
   printf("Executed SRAV; rd: %d -> %d \n", oldRd, Reg[rd]);
 }
 
@@ -1047,16 +1055,16 @@ void sltiu(instruction *instr) {
 }
 
 void j(instruction *instr) {
-  int rd = instr->rd;
-  int imm = instr->imm;
+  int index = instr->index;
+  index = userMemoryBase - 8 + instr->index * 4;
+
   instr->numClockCycles = 3;
   totalClockCycles += 3;
-  int oldRd = Reg[rd];
-  Reg[rd] = Reg[imm];
-  printf("Executed J; rd: %d -> %d \n", oldRd, Reg[rd]);
 
+  printf("index: %d\n", index);
   int oldPc = pc;
-  pc = instr->index;
+  pc = index;
+  //printf("pc[31:28]: %x\n", pc & 0b 00000000000000000000000000000000 );
   printf("Executed j; pc: %d -> %d \n", oldPc, pc);
 }
 
@@ -1065,11 +1073,12 @@ void lb(instruction *instr) {
   totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
-  short imm = instr->imm;
+  short imm = instr->imm / 4;
   memRefCount++;
 
-  Reg[rt] = (char)(mem[Reg[rs]] + imm);
-  //printf("Executed lb; rt: %d -> %d \n", oldRt, Reg[rt]);
+  int oldRt = Reg[rt];
+  Reg[rt] = (signed char)(mem[Reg[rs] + imm]);
+  printf("Executed lb; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void lbu(instruction *instr) {
@@ -1077,10 +1086,11 @@ void lbu(instruction *instr) {
   totalClockCycles += 5;
   int rs = instr->rs;
   int rt = instr->rt;
-  short imm = instr->imm;
+  short imm = instr->imm / 4;
   memRefCount++;
-
-  Reg[rt] = (unsigned char)(mem[Reg[rs]] + imm);
+  int oldRt = Reg[rt];
+  Reg[rt] = (unsigned char)(mem[Reg[rs] + imm]);
+  printf("Executed lbu; rt: %d -> %d \n", oldRt, Reg[rt]);
 }
 
 void lh(instruction *instr) {
@@ -1115,6 +1125,7 @@ void sb(instruction *instr) {
 
   memRefCount++;
   mem[Reg[rs] + imm] = (char)Reg[rt];
+  printf("Executed sb");
 }
 
 void sh(instruction *instr) {
@@ -1126,7 +1137,7 @@ void sh(instruction *instr) {
 
   memRefCount++;
   mem[Reg[rs] + imm] = (short)Reg[rt];
-  printf("Executed LW;");
+  printf("Executed sh");
 }
 
 /* UNTESTED!!! */
@@ -1140,5 +1151,5 @@ void sw(instruction *instr) {
 
   memRefCount++;
   mem[Reg[rs] + imm] = Reg[rt];
-  printf("Executed LW;");
+  printf("Executed sw");
 }

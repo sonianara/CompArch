@@ -11,7 +11,7 @@ typedef struct instruction {
   int shamt;
   int funct;
   short imm;
-  int index;
+  unsigned int index;
   char mneumonic[5];
   int numClockCycles;
 } instruction;
