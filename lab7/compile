@@ -1,0 +1,11 @@
+#!/bin/bash
+
+gcc -o load_testcase driver.c
+
+if [[ $? == 0 ]]; then
+
+  if [[ $1 == "run" ]]; then
+    ./load_testcase
+  fi
+
+fi
