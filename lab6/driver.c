@@ -83,7 +83,6 @@ void loadMemory() {
   for (idx = 0; idx < entryPoint; idx += 4) {
     mem[idx / 4];
   }
-
 }
 
 void startSimulation(int mode) {
@@ -235,23 +234,6 @@ void executeInstruction(instruction *instr) {
     sw(instr);
 
 
-}
-
-void loopMem() {
-  int byteOffset;
-  int memIndex;
-  unsigned int rawInstruction;
-  instruction instr;
-
-  /* now dump out the instructions loaded */
-  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
-    memIndex = byteOffset / 4;
-    readInstruction(memIndex, &instr);
-    printInstruction(&instr);
-    //printf("%d | %d\n\n", instr.type, instr.opcode);
-
-    handleInstruction(memIndex);
-  }
 }
 
 void readInstruction(int index, instruction *instr) {
