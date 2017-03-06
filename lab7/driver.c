@@ -1086,12 +1086,14 @@ void sltiu(instruction *instr) {
 
 void j(instruction *instr) {
   int index = instr->index;
-  index = userMemoryBase - 8 + instr->index * 4;
+  index = index << 2;
+  index = index | (pc & 0b11110000000000000000000000000000 );
+  index = userMemoryBase - entryPoint + index;
+  printf("index: %d\n", index);
 
   instr->numClockCycles = 3;
   totalClockCycles += 3;
 
-  printf("index: %d\n", index);
   int oldPc = pc;
   pc = index;
   //printf("pc[31:28]: %x\n", pc & 0b 00000000000000000000000000000000 );

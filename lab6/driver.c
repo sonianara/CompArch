@@ -79,7 +79,6 @@ int main() {
 }
 
 void loadMemory() {
-
   int idx;
   for (idx = 0; idx < entryPoint; idx += 4) {
     mem[idx / 4];
@@ -1030,7 +1029,6 @@ void j(instruction *instr) {
   index = index | (pc & 0b11110000000000000000000000000000 );
   index = userMemoryBase - entryPoint + index;
   printf("index: %d\n", index);
-  //index = userMemoryBase - 8 + instr->index * 4;
 
   instr->numClockCycles = 3;
   totalClockCycles += 3;
