@@ -112,18 +112,33 @@ void startPipelinedSimulation(int mode) {
 
 void fetch() {
   printf("FETCH()\n");
+  // if inbox isn't empty, & outbox is empty
+  if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+    // load instr from inbox
+  } else {
+    printf(".....fetch is not ready\n");
+  }
+  unsigned int instr = mem[pc / 4];
+  printf("instr: 0x%X\n", instr);
+  pc = pc + 4;
+  bus.fetch.count++;
+  return instr;
 }
 void decode() {
   printf("DECODE()\n");
+  bus.decode.count++;
 }
 void execute() {
   printf("EXECUTE()\n");
+  bus.execute.count++;
 }
 void memory() {
   printf("MEMORY()\n");
+  bus.memory.count++;
 }
 void writeback() {
   printf("WRITEBACK()\n");
+  bus.writeback.count++;
 }
 
 void startSimulation(int mode) {
@@ -154,7 +169,6 @@ unsigned int fetchInstruction() {
   printf("instr: %d\n", instr);
   pc = pc + 4;
   return instr;
-
 }
 
 void decodeInstruction(unsigned int rawInstruction, instruction *instr) {

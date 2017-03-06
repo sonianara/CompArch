@@ -1,68 +1,75 @@
 
 #define BUSY 1
 #define READY 2
+#define TRUE 1
+#define FALSE 0
 
 typedef struct fetchInbox {
-  int status;
+  int isEmpty;
 } fetchInbox;
 
 typedef struct fetchOutbox {
-  int status;
+  int isEmpty;
 } fetchOutbox;
 
 typedef struct decodeInbox {
-  int status;
+  int isEmpty;
 } decodeInbox;
 
 typedef struct decodeOutbox {
-  int status;
+  int isEmpty;
 } decodeOutbox;
 
 typedef struct executeInbox {
-  int status;
+  int isEmpty;
 } executeInbox;
 
 typedef struct executeOutbox {
-  int status;
+  int isEmpty;
 } executeOutbox;
 
 typedef struct memoryInbox {
-  int status;
+  int isEmpty;
 } memoryInbox;
 
 typedef struct memoryOutbox {
-  int status;
+  int isEmpty;
 } memoryOutbox;
 
 typedef struct writebackInbox {
-  int status;
+  int isEmpty;
 } writebackInbox;
 
 typedef struct writebackOutbox {
-  int status;
+  int isEmpty;
 } writebackOutbox;
 
 typedef struct fetchBox {
+  int count;
   fetchInbox in;
   fetchOutbox out;
 } fetchBox;
 
 typedef struct decodeBox {
+  int count;
   decodeInbox in;
   decodeOutbox out;
 } decodeBox;
 
 typedef struct executeBox {
+  int count;
   executeInbox in;
   executeOutbox out;
 } executeBox;
 
 typedef struct memoryBox {
+  int count;
   memoryInbox in;
   memoryOutbox out;
 } memoryBox;
 
 typedef struct writebackBox {
+  int count;
   writebackInbox in;
   writebackOutbox out;
 } writebackBox;
