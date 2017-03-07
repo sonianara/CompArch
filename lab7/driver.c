@@ -40,10 +40,12 @@ int memOffset = 0;
 int instructionCount = 0;
 int memRefCount = 0;
 int exitTriggered = 0;
+int haltflag;
 int userMemoryBase = 0x300;
 int entryPoint;
 int totalClockCycles = 0;
-//int mockEntryPoint = 4;
+int totalClocks = 0;
+Bus bus;
 
 int main() {
   int mode;
@@ -55,17 +57,13 @@ int main() {
 
   loadMemory();
 
-  printf("Would you like to start in (1) 'single step' mode or in (2) 'run' mode?\n");
-  scanf(" %d", &answer);
-  getchar();
-  while (answer != 1 && answer != 2) {
-    printf("Please enter either 1 or 2\n");
-    scanf("%d", &answer);
-    getchar();
-  }
+  mode = getRunMode();
 
-  mode = (answer == 1) ? SINGLE_STEP : RUN;
-  startSimulation(mode);
+  bus.fetch.in.status = BUSY;
+
+  initInOutBoxes();
+
+  startPipelinedSimulation(mode);
 
   //loopMem(mode);
   //printMemDescriptions(&memOffset);
@@ -85,15 +83,69 @@ void loadMemory() {
   }
 }
 
+int getRunMode() {
+  int answer;
+  printf("Would you like to start in (1) 'single step' mode or in (2) 'run' mode?\n");
+  scanf(" %d", &answer);
+  getchar();
+  while (answer != 1 && answer != 2) {
+    printf("Please enter either 1 or 2\n");
+    scanf("%d", &answer);
+    getchar();
+  }
+  return (answer == 1) ? SINGLE_STEP : RUN;
+}
+
+void initInOutBoxes() {
+  printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
+}
+
+void startPipelinedSimulation(int mode) {
+  for (haltflag = 0; !haltflag; totalClocks++) {
+    writeback();
+    memory();
+    execute();
+    decode();
+    fetch();
+  }
+}
+
+void fetch() {
+  printf("FETCH()\n");
+  // if inbox isn't empty, & outbox is empty
+  if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+    // load instr from inbox
+  } else {
+    printf(".....fetch is not ready\n");
+  }
+  unsigned int instr = mem[pc / 4];
+  printf("instr: 0x%X\n", instr);
+  pc = pc + 4;
+  bus.fetch.count++;
+  return instr;
+}
+void decode() {
+  printf("DECODE()\n");
+  bus.decode.count++;
+}
+void execute() {
+  printf("EXECUTE()\n");
+  bus.execute.count++;
+}
+void memory() {
+  printf("MEMORY()\n");
+  bus.memory.count++;
+}
+void writeback() {
+  printf("WRITEBACK()\n");
+  bus.writeback.count++;
+}
+
 void startSimulation(int mode) {
-  int byteOffset;
-  int memIndex;
   unsigned int rawInstruction;
   instruction instr;
   pc = userMemoryBase;
-
   /* now dump out the instructions loaded */
-
   while (!exitTriggered) {
     printf("pc: 0x%04X\n", pc);
     unsigned int rawInstruction = fetchInstruction();
@@ -101,19 +153,14 @@ void startSimulation(int mode) {
     instr.address = pc;
     decodeInstruction(rawInstruction, &instr);
     instr.numClockCycles = 2;
-
     printInstruction(&instr);
     executeInstruction(&instr);
     printRegisters();
-
-
     if (mode == SINGLE_STEP) { // && pc > PCGOTO) {
       getchar();
     }
-
     printf("\n");
   }
-
   printRegisters();
 }
 
@@ -122,7 +169,6 @@ unsigned int fetchInstruction() {
   printf("instr: %d\n", instr);
   pc = pc + 4;
   return instr;
-
 }
 
 void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
@@ -153,6 +199,34 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
 void executeInstruction(instruction *instr) {
   printf("Execute `%s` type instruction\n", instr->mneumonic);
   instructionCount++;
+
+//  if (instr->isSyscall)
+//    systemCall(instr);
+//
+//  else if (strcmp(instr->mneumonic, "add") == 0)
+//    add(instr);
+//  else if (strcmp(instr->mneumonic, "addi") == 0)
+//    addi(instr);
+//  else if (strcmp(instr->mneumonic, "lw") == 0)
+//    lw(instr);
+//  else if (strcmp(instr->mneumonic, "jal") == 0)
+//    jal(instr);
+//  else if (strcmp(instr->mneumonic, "and") == 0)
+//    and(instr);
+//  else if (strcmp(instr->mneumonic, "ori") == 0)
+//    ori(instr);
+//  else if (strcmp(instr->mneumonic, "beq") == 0)
+//    beq(instr);
+//  else if (strcmp(instr->mneumonic, "bne") == 0)
+//    bne(instr);
+//  else if (strcmp(instr->mneumonic, "sll") == 0)
+//    sll(instr);
+//  else if (strcmp(instr->mneumonic, "jr") == 0)
+//    jr(instr);
+//  else if (strcmp(instr->mneumonic, "or") == 0)
+//    or(instr);
+
+
 
   if (instr->isSyscall)
     systemCall(instr);
@@ -234,6 +308,23 @@ void executeInstruction(instruction *instr) {
     sw(instr);
 
 
+}
+
+void loopMem() {
+  int byteOffset;
+  int memIndex;
+  unsigned int rawInstruction;
+  instruction instr;
+
+  /* now dump out the instructions loaded */
+  for (byteOffset = 0; byteOffset < memOffset; byteOffset += 4) {
+    memIndex = byteOffset / 4;
+    readInstruction(memIndex, &instr);
+    printInstruction(&instr);
+    //printf("%d | %d\n\n", instr.type, instr.opcode);
+
+    handleInstruction(memIndex);
+  }
 }
 
 void readInstruction(int index, instruction *instr) {
@@ -547,6 +638,8 @@ unsigned int getReg(int regNum) {
 
 void loadBinaryFile() {
   FILE *fd;
+  /* This is the filename to be loaded */
+  //char filename[] = "testcase1.mb";
   char filename[] = FILENAME;
   int byteOffset;
   int n;
