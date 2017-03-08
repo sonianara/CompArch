@@ -27,11 +27,13 @@ typedef struct decode_execute {
 typedef struct execute_memory {
   int isEmpty;
   instruction instr;
+  int willAccessMem;
 } execute_memory;
 
 typedef struct memory_writeback {
   int isEmpty;
   instruction instr;
+  unsigned int value;
 } memory_writeback;
 
 typedef struct Bus {
@@ -40,7 +42,6 @@ typedef struct Bus {
   execute_memory em;
   memory_writeback mw;
 } Bus;
-
 
 //typedef struct fetchInbox {
 //  int isEmpty;
@@ -130,6 +131,7 @@ typedef struct instruction {
   unsigned int memAddress;
   int isSyscall;
   int type;
+  int isBranch;
   int rs;
   int rt;
   int rd;
@@ -192,7 +194,7 @@ unsigned int getSReg(int regNum);
 unsigned int getVReg(int regNum);
 unsigned int getReg(int regNum);
 
-void computeAddress(instruction *instr);
+void computeMemAddress(instruction *instr);
 void lw(instruction *instr);
 void jal(instruction *instr);
 void and(instruction *instr);

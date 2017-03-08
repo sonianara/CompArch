@@ -121,7 +121,7 @@ void fetch() {
     pc = pc + 4;
     stats.fetchCount++;
   } else {
-    printf(".....fetch is not ready\n");
+    printf("Not running fetch cycle\n");
   }
 }
 
@@ -133,9 +133,10 @@ void decode() {
     decodeInstruction(rawInstruction, &instr);
     bus.fd.isEmpty = TRUE;
     bus.de.instr = isntr;
+    bus.de.isEmpty = FALSE;
     stats.decodeCount++;
   } else {
-    printf(".....decode is not ready\n");
+    printf("Not running decode cycle\n");
   }
 }
 
@@ -146,23 +147,48 @@ void execute() {
     bus.fd.isEmpty = TRUE;
     isntr = bus.de.instr;
     if (instr.willAccessMem) {
-      computeAddress(&instr);
-    } 
+      computeMemAddress(&instr);
+      bus.em.willAccessMem = TRUE;
+    }
+    bus.em.instr = instr;
+    bus.em.isEmpty = FALSE;
     stats.executeCount++;
   } else {
-    printf(".....execute is not ready\n");
+    printf("Not running execute cycle\n");
   }
 }
 
 void memory() {
   printf("MEMORY()\n");
   instruction instr;
-  if (!bus.em.isEmpty && bus.mw.isEmpty) {
-    bus.memory.count++;
-    bus.em.isEmpty = FALSE;
+  unsigned int address;
+  if (!bus.em.isEmpty && bus.mw.isEmpty && bus.willAccessMem) {
+    instr = bus.em.instr;
+    address = instr.memAddress;
+    bus.em.isEmpty = TRUE;
+    if (strcmp(instr->mneumonic, "lw") == 0) {
+      bus.mw.value = (signed short)mem[address];
+    } else if (strcmp(instr->mneumonic, "lh") == 0) {
+      bus.mw.value = (short)mem[address];
+    } else if (strcmp(instr->mneumonic, "lb") == 0) {
+      bus.mw.value = (signed char)mem[address];
+    } else if (strcmp(instr->mneumonic, "lbu") == 0) {
+      bus.mw.value = (unsigned char)mem[address];
+    } else if (strcmp(instr->mneumonic, "lui") == 0) {
+      //bus.mw.value = (signed char)mem[address];
+    } else if (strcmp(instr->mneumonic, "lhu") == 0) {
+      bus.mw.value = (unsigned short)mem[address];
+    } else if (strcmp(instr->mneumonic, "sw") == 0) {
+      bus.mw.value = mem[address];
+    } else if (strcmp(instr->mneumonic, "sh") == 0) {
+      bus.mw.value = (short)mem[address];
+    } else if (strcmp(instr->mneumonic, "sb") == 0) {
+      bus.mw.value = (char)mem[address];
+    }
+    bus.mw.isEmpty = FALSE;
     stats.memoryCount++;
   } else {
-    printf(".....memory is not ready\n");
+    printf("Not running mem cycle\n");
   }
 }
 
@@ -173,12 +199,12 @@ void writeback() {
     bus.em.isEmpty = FALSE;
     stats.writebackCount++;
   } else {
-
+    printf("Not running writeback cycle\n");
   }
   bus.writeback.count++;
 }
 
-void computeAddress(instruction *instr) {
+void computeMemAddress(instruction *instr) {
   instr->memAddress = mem[Reg[rs] + imm];
 }
 
@@ -234,6 +260,9 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
       strcmp(instr->mneumonic, "lw") == 0 ||
       strcmp(instr->mneumonic, "lh") == 0 ||
       strcmp(instr->mneumonic, "lb") == 0 ||
+      strcmp(instr->mneumonic, "lbu") == 0 ||
+      strcmp(instr->mneumonic, "lui") == 0 ||
+      strcmp(instr->mneumonic, "lhu") == 0 ||
       strcmp(instr->mneumonic, "sw") == 0 ||
       strcmp(instr->mneumonic, "sh") == 0 ||
       strcmp(instr->mneumonic, "sb") == 0 
@@ -678,15 +707,19 @@ int isBranch(int funcCode) {
 unsigned int getTReg(int regNum) {
   return Reg[regNum + 8];
 }
+
 unsigned int getAReg(int regNum) {
   return Reg[regNum + 4];
 }
+
 unsigned int getSReg(int regNum) {
   return Reg[regNum + 16];
 }
+
 unsigned int getVReg(int regNum) {
   return Reg[regNum + 2];
 }
+
 unsigned int getReg(int regNum) {
   return Reg[regNum];
 }
