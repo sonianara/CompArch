@@ -59,7 +59,7 @@ int main() {
 
   mode = getRunMode();
 
-  bus.fetch.in.status = BUSY;
+  // bus.fetch.in.status = BUSY;
 
   initInOutBoxes();
 
@@ -97,7 +97,7 @@ int getRunMode() {
 }
 
 void initInOutBoxes() {
-  printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
+  //printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
 }
 
 void startPipelinedSimulation(int mode) {
@@ -113,7 +113,9 @@ void startPipelinedSimulation(int mode) {
 void fetch() {
   printf("FETCH()\n");
   // if inbox isn't empty, & outbox is empty
-  if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+  //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+  if (bus.fd.isReady) {
+
     // load instr from inbox
   } else {
     printf(".....fetch is not ready\n");
