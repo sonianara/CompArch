@@ -4,83 +4,119 @@
 #define TRUE 1
 #define FALSE 0
 
-typedef struct fetchInbox {
-  int isEmpty;
-} fetchInbox;
+typedef struct Stats {
+  int fetchCount = 0;
+  int decodeCount = 0;
+  int executeCount = 0;
+  int memoryCount = 0;
+  int writebackCount = 0;
+} Stats;
 
-typedef struct fetchOutbox {
-  int isEmpty;
-} fetchOutbox;
+typedef struct fetch_decode {
+  int isReady;
+  instruction instr;
+} fetch_decode;
 
-typedef struct decodeInbox {
-  int isEmpty;
-} decodeInbox;
+typedef struct decode_execute {
+  int isReady;
+  instruction instr;
+} decode_execute;
 
-typedef struct decodeOutbox {
-  int isEmpty;
-} decodeOutbox;
+typedef struct execute_memory {
+  int isReady;
+  instruction instr;
+} execute_memory;
 
-typedef struct executeInbox {
-  int isEmpty;
-} executeInbox;
-
-typedef struct executeOutbox {
-  int isEmpty;
-} executeOutbox;
-
-typedef struct memoryInbox {
-  int isEmpty;
-} memoryInbox;
-
-typedef struct memoryOutbox {
-  int isEmpty;
-} memoryOutbox;
-
-typedef struct writebackInbox {
-  int isEmpty;
-} writebackInbox;
-
-typedef struct writebackOutbox {
-  int isEmpty;
-} writebackOutbox;
-
-typedef struct fetchBox {
-  int count;
-  fetchInbox in;
-  fetchOutbox out;
-} fetchBox;
-
-typedef struct decodeBox {
-  int count;
-  decodeInbox in;
-  decodeOutbox out;
-} decodeBox;
-
-typedef struct executeBox {
-  int count;
-  executeInbox in;
-  executeOutbox out;
-} executeBox;
-
-typedef struct memoryBox {
-  int count;
-  memoryInbox in;
-  memoryOutbox out;
-} memoryBox;
-
-typedef struct writebackBox {
-  int count;
-  writebackInbox in;
-  writebackOutbox out;
-} writebackBox;
+typedef struct memory_writeback {
+  int isReady;
+  instruction instr;
+} memory_writeback;
 
 typedef struct Bus {
-  fetchBox fetch;
-  decodeBox decode;
-  executeBox execute;
-  memoryBox memory;
-  writebackBox writeback;
+  fetch_decode fd;
+  decode_execute de;
+  execute_memory em;
+  memory_writeback mw;
 } Bus;
+
+
+//typedef struct fetchInbox {
+//  int isEmpty;
+//} fetchInbox;
+//
+//typedef struct fetchOutbox {
+//  int isEmpty;
+//} fetchOutbox;
+//
+//typedef struct decodeInbox {
+//  int isEmpty;
+//} decodeInbox;
+//
+//typedef struct decodeOutbox {
+//  int isEmpty;
+//} decodeOutbox;
+//
+//typedef struct executeInbox {
+//  int isEmpty;
+//} executeInbox;
+//
+//typedef struct executeOutbox {
+//  int isEmpty;
+//} executeOutbox;
+//
+//typedef struct memoryInbox {
+//  int isEmpty;
+//} memoryInbox;
+//
+//typedef struct memoryOutbox {
+//  int isEmpty;
+//} memoryOutbox;
+//
+//typedef struct writebackInbox {
+//  int isEmpty;
+//} writebackInbox;
+//
+//typedef struct writebackOutbox {
+//  int isEmpty;
+//} writebackOutbox;
+//
+//typedef struct fetchBox {
+//  int count;
+//  fetchInbox in;
+//  fetchOutbox out;
+//} fetchBox;
+//
+//typedef struct decodeBox {
+//  int count;
+//  decodeInbox in;
+//  decodeOutbox out;
+//} decodeBox;
+//
+//typedef struct executeBox {
+//  int count;
+//  executeInbox in;
+//  executeOutbox out;
+//} executeBox;
+//
+//typedef struct memoryBox {
+//  int count;
+//  memoryInbox in;
+//  memoryOutbox out;
+//} memoryBox;
+//
+//typedef struct writebackBox {
+//  int count;
+//  writebackInbox in;
+//  writebackOutbox out;
+//} writebackBox;
+//
+//typedef struct Bus {
+//  fetchBox fetch;
+//  decodeBox decode;
+//  executeBox execute;
+//  memoryBox memory;
+//  writebackBox writeback;
+//} Bus;
 
 
 
