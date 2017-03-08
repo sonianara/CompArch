@@ -4,14 +4,35 @@
 #define TRUE 1
 #define FALSE 0
 
+typedef struct instruction {
+  unsigned int address;
+  unsigned int raw;
+  int opcode;
+  int willAccessMem;
+  unsigned int memAddress;
+  int isSyscall;
+  int type;
+  int isBranch;
+  int rs;
+  int rt;
+  int rd;
+  int shamt;
+  int funct;
+  short imm;
+  unsigned int index;
+  char mneumonic[5];
+  int numClockCycles;
+} instruction;
+
+
 typedef struct Stats {
-  int fetchCount = 0;
-  int decodeCount = 0;
-  int executeCount = 0;
-  int memoryCount = 0;
-  int writebackCount = 0;
-  int totalClocks = 0;
-  int memRefCount = 0;
+  int fetchCount;
+  int decodeCount;
+  int executeCount;
+  int memoryCount;
+  int writebackCount;
+  int totalClocks;
+  int memRefCount;
 } Stats;
 
 typedef struct fetch_decode {
@@ -123,26 +144,6 @@ typedef struct Bus {
 
 
 
-typedef struct instruction {
-  unsigned int address;
-  unsigned int raw;
-  int opcode;
-  int willAccessMem;
-  unsigned int memAddress;
-  int isSyscall;
-  int type;
-  int isBranch;
-  int rs;
-  int rt;
-  int rd;
-  int shamt;
-  int funct;
-  short imm;
-  unsigned int index;
-  char mneumonic[5];
-  int numClockCycles;
-} instruction;
-
 void fetch();
 void decode();
 void execute();
@@ -159,6 +160,8 @@ void loopMem();
 //void handleInstruction(unsigned int instr);
 void handleInstruction(int index);
 void executeInstruction(instruction *instr);
+
+void getInstructionFunction(instruction *instr);
 
 void readInstruction(int index, instruction *instr);
 void printInstruction(instruction *instr);
