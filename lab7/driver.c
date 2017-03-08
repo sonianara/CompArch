@@ -114,8 +114,8 @@ void fetch() {
   unsigned int instr;
   // if inbox isn't empty, & outbox is empty
   //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
-  if (bus.fd.isReady) {
-    bus.fd.isReady = FALSE;
+  if (bus.fd.isEmpty) {
+    bus.fd.isEmpty = FALSE;
     instr = mem[pc / 4];
     bus.fd.instr = instr;
     pc = pc + 4;
@@ -126,24 +126,33 @@ void fetch() {
 }
 void decode() {
   printf("DECODE()\n");
-  unsigned int instr;
-  if (!bus.fd.isReady && bus.de.isReady) {
-    instr = bus.fd.instr;
-    bus.fd.isReady = TRUE;
+  instruction instr;
+  unsigned int rawInstruction;
+  if (!bus.fd.isEmpty && bus.de.isEmpty) {
+    decodeInstruction(rawInstruction, &instr);
+    bus.fd.isEmpty = TRUE;
+    bus.de.instr = isntr;
     stats.decodeCount++;
   } else {
     printf(".....decode is not ready\n");
   }
-
 }
+
 void execute() {
   printf("EXECUTE()\n");
+  instruction instr;
+  if (!bus.de.isEmpty && bus.em.isEmpty) {
+    
+  }
+
   bus.execute.count++;
 }
+
 void memory() {
   printf("MEMORY()\n");
   bus.memory.count++;
 }
+
 void writeback() {
   printf("WRITEBACK()\n");
   bus.writeback.count++;

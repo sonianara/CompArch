@@ -15,22 +15,22 @@ typedef struct Stats {
 } Stats;
 
 typedef struct fetch_decode {
-  int isReady;
+  int isEmpty;
   unsigned int instr;
 } fetch_decode;
 
 typedef struct decode_execute {
-  int isReady;
+  int isEmpty;
   instruction instr;
 } decode_execute;
 
 typedef struct execute_memory {
-  int isReady;
+  int isEmpty;
   instruction instr;
 } execute_memory;
 
 typedef struct memory_writeback {
-  int isReady;
+  int isEmpty;
   instruction instr;
 } memory_writeback;
 
