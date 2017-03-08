@@ -46,6 +46,7 @@ int entryPoint;
 int totalClockCycles = 0;
 int totalClocks = 0;
 Bus bus;
+Stats stats;
 
 int main() {
   int mode;
@@ -58,8 +59,6 @@ int main() {
   loadMemory();
 
   mode = getRunMode();
-
-  // bus.fetch.in.status = BUSY;
 
   initInOutBoxes();
 
@@ -112,23 +111,30 @@ void startPipelinedSimulation(int mode) {
 
 void fetch() {
   printf("FETCH()\n");
+  unsigned int instr;
   // if inbox isn't empty, & outbox is empty
   //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
   if (bus.fd.isReady) {
-
-    // load instr from inbox
+    bus.fd.isReady = FALSE;
+    instr = mem[pc / 4];
+    bus.fd.instr = instr;
+    pc = pc + 4;
+    stats.fetchCount++;
   } else {
     printf(".....fetch is not ready\n");
   }
-  unsigned int instr = mem[pc / 4];
-  printf("instr: 0x%X\n", instr);
-  pc = pc + 4;
-  bus.fetch.count++;
-  return instr;
 }
 void decode() {
   printf("DECODE()\n");
-  bus.decode.count++;
+  unsigned int instr;
+  if (!bus.fd.isReady && bus.de.isReady) {
+    instr = bus.fd.instr;
+    bus.fd.isReady = TRUE;
+    stats.decodeCount++;
+  } else {
+    printf(".....decode is not ready\n");
+  }
+
 }
 void execute() {
   printf("EXECUTE()\n");

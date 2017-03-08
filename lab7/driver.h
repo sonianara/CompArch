@@ -10,11 +10,13 @@ typedef struct Stats {
   int executeCount = 0;
   int memoryCount = 0;
   int writebackCount = 0;
+  int totalClocks = 0;
+  int memRefCount = 0;
 } Stats;
 
 typedef struct fetch_decode {
   int isReady;
-  instruction instr;
+  unsigned int instr;
 } fetch_decode;
 
 typedef struct decode_execute {
