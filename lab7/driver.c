@@ -124,6 +124,7 @@ void fetch() {
     printf(".....fetch is not ready\n");
   }
 }
+
 void decode() {
   printf("DECODE()\n");
   instruction instr;
@@ -142,20 +143,43 @@ void execute() {
   printf("EXECUTE()\n");
   instruction instr;
   if (!bus.de.isEmpty && bus.em.isEmpty) {
-    
+    bus.fd.isEmpty = TRUE;
+    isntr = bus.de.instr;
+    if (instr.willAccessMem) {
+      computeAddress(&instr);
+    } 
+    stats.executeCount++;
+  } else {
+    printf(".....execute is not ready\n");
   }
-
-  bus.execute.count++;
 }
 
 void memory() {
   printf("MEMORY()\n");
-  bus.memory.count++;
+  instruction instr;
+  if (!bus.em.isEmpty && bus.mw.isEmpty) {
+    bus.memory.count++;
+    bus.em.isEmpty = FALSE;
+    stats.memoryCount++;
+  } else {
+    printf(".....memory is not ready\n");
+  }
 }
 
 void writeback() {
   printf("WRITEBACK()\n");
+  instruction instr;
+  if (!bus.mw.isEmpty) {
+    bus.em.isEmpty = FALSE;
+    stats.writebackCount++;
+  } else {
+
+  }
   bus.writeback.count++;
+}
+
+void computeAddress(instruction *instr) {
+  instr->memAddress = mem[Reg[rs] + imm];
 }
 
 void startSimulation(int mode) {
@@ -205,6 +229,20 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
   } else if (instr->type == J_TYPE) {
     instr->index = getIndex(&rawInstruction);
   }
+
+  if (
+      strcmp(instr->mneumonic, "lw") == 0 ||
+      strcmp(instr->mneumonic, "lh") == 0 ||
+      strcmp(instr->mneumonic, "lb") == 0 ||
+      strcmp(instr->mneumonic, "sw") == 0 ||
+      strcmp(instr->mneumonic, "sh") == 0 ||
+      strcmp(instr->mneumonic, "sb") == 0 
+      ) {
+    instr->willAccessMem = TRUE;
+  } else {
+    instr->willAccessMem = FALSE;
+  }
+
   if (rawInstruction == 0) {
     strcpy(instr->mneumonic, "NOP");
   } else {
@@ -1164,7 +1202,7 @@ void lh(instruction *instr) {
   short imm = instr->imm;
   memRefCount++;
 
-  Reg[rt] = (short)(mem[Reg[rs]] + imm);
+  Reg[rt] = (short)(mem[Reg[rs] + imm]);
 }
 
 /* R[rt]={16’b0, M[R[rs]+ZeroExtImm]( */
@@ -1176,7 +1214,7 @@ void lhu(instruction *instr) {
   short imm = instr->imm;
 
   memRefCount++;
-  Reg[rt] = (unsigned short)(mem[Reg[rs]] + imm);
+  Reg[rt] = (unsigned short)(mem[Reg[rs] + imm]);
 }
 
 void sb(instruction *instr) {

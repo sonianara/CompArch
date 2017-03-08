@@ -126,6 +126,8 @@ typedef struct instruction {
   unsigned int address;
   unsigned int raw;
   int opcode;
+  int willAccessMem;
+  unsigned int memAddress;
   int isSyscall;
   int type;
   int rs;
@@ -190,6 +192,7 @@ unsigned int getSReg(int regNum);
 unsigned int getVReg(int regNum);
 unsigned int getReg(int regNum);
 
+void computeAddress(instruction *instr);
 void lw(instruction *instr);
 void jal(instruction *instr);
 void and(instruction *instr);
