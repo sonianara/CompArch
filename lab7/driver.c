@@ -12,8 +12,8 @@
 #include "driver.h"
 
 //#define FILENAME "countbits_benchmark2.mb"
-#define FILENAME "diagnostics.mb"
-//#define FILENAME "simple_add.mb"
+//#define FILENAME "diagnostics.mb"
+#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
 #define FIXED 2
@@ -97,6 +97,10 @@ int getRunMode() {
 
 void initInOutBoxes() {
   //printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
+  bus.fd.isEmpty = TRUE;
+  bus.de.isEmpty = TRUE;
+  bus.em.isEmpty = TRUE;
+  bus.mw.isEmpty = TRUE;
 }
 
 void startPipelinedSimulation(int mode) {
@@ -106,22 +110,26 @@ void startPipelinedSimulation(int mode) {
     execute();
     decode();
     fetch();
+    if (mode == SINGLE_STEP) { // && pc > PCGOTO) {
+      getchar();
+    }
+    printf("\n");
   }
 }
 
 void fetch() {
-  printf("FETCH()\n");
   unsigned int instr;
   // if inbox isn't empty, & outbox is empty
-  //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+  // if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
   if (bus.fd.isEmpty) {
+    printf("Running fetch cycle\n");
     bus.fd.isEmpty = FALSE;
     instr = mem[pc / 4];
     bus.fd.instr = instr;
     pc = pc + 4;
     stats.fetchCount++;
   } else {
-    printf("Not running fetch cycle\n");
+    printf("Not running fetch cycle; bus.fd.isEmpty: %d\n",  bus.fd.isEmpty);
   }
 }
 
