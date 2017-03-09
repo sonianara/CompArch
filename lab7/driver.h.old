@@ -4,15 +4,92 @@
 #define TRUE 1
 #define FALSE 0
 
+typedef struct fetchInbox {
+  int isEmpty;
+} fetchInbox;
+
+typedef struct fetchOutbox {
+  int isEmpty;
+} fetchOutbox;
+
+typedef struct decodeInbox {
+  int isEmpty;
+} decodeInbox;
+
+typedef struct decodeOutbox {
+  int isEmpty;
+} decodeOutbox;
+
+typedef struct executeInbox {
+  int isEmpty;
+} executeInbox;
+
+typedef struct executeOutbox {
+  int isEmpty;
+} executeOutbox;
+
+typedef struct memoryInbox {
+  int isEmpty;
+} memoryInbox;
+
+typedef struct memoryOutbox {
+  int isEmpty;
+} memoryOutbox;
+
+typedef struct writebackInbox {
+  int isEmpty;
+} writebackInbox;
+
+typedef struct writebackOutbox {
+  int isEmpty;
+} writebackOutbox;
+
+typedef struct fetchBox {
+  int count;
+  fetchInbox in;
+  fetchOutbox out;
+} fetchBox;
+
+typedef struct decodeBox {
+  int count;
+  decodeInbox in;
+  decodeOutbox out;
+} decodeBox;
+
+typedef struct executeBox {
+  int count;
+  executeInbox in;
+  executeOutbox out;
+} executeBox;
+
+typedef struct memoryBox {
+  int count;
+  memoryInbox in;
+  memoryOutbox out;
+} memoryBox;
+
+typedef struct writebackBox {
+  int count;
+  writebackInbox in;
+  writebackOutbox out;
+} writebackBox;
+
+typedef struct Bus {
+  fetchBox fetch;
+  decodeBox decode;
+  executeBox execute;
+  memoryBox memory;
+  writebackBox writeback;
+} Bus;
+
+
+
 typedef struct instruction {
   unsigned int address;
   unsigned int raw;
   int opcode;
-  int willAccessMem;
-  unsigned int memAddress;
   int isSyscall;
   int type;
-  int isBranch;
   int rs;
   int rt;
   int rd;
@@ -23,126 +100,6 @@ typedef struct instruction {
   char mneumonic[5];
   int numClockCycles;
 } instruction;
-
-
-typedef struct Stats {
-  int fetchCount;
-  int decodeCount;
-  int executeCount;
-  int memoryCount;
-  int writebackCount;
-  int totalClocks;
-  int memRefCount;
-} Stats;
-
-typedef struct fetch_decode {
-  int isEmpty;
-  unsigned int instr;
-} fetch_decode;
-
-typedef struct decode_execute {
-  int isEmpty;
-  instruction instr;
-} decode_execute;
-
-typedef struct execute_memory {
-  int isEmpty;
-  instruction instr;
-  int willAccessMem;
-} execute_memory;
-
-typedef struct memory_writeback {
-  int isEmpty;
-  instruction instr;
-  unsigned int value;
-} memory_writeback;
-
-typedef struct Bus {
-  fetch_decode fd;
-  decode_execute de;
-  execute_memory em;
-  memory_writeback mw;
-} Bus;
-
-//typedef struct fetchInbox {
-//  int isEmpty;
-//} fetchInbox;
-//
-//typedef struct fetchOutbox {
-//  int isEmpty;
-//} fetchOutbox;
-//
-//typedef struct decodeInbox {
-//  int isEmpty;
-//} decodeInbox;
-//
-//typedef struct decodeOutbox {
-//  int isEmpty;
-//} decodeOutbox;
-//
-//typedef struct executeInbox {
-//  int isEmpty;
-//} executeInbox;
-//
-//typedef struct executeOutbox {
-//  int isEmpty;
-//} executeOutbox;
-//
-//typedef struct memoryInbox {
-//  int isEmpty;
-//} memoryInbox;
-//
-//typedef struct memoryOutbox {
-//  int isEmpty;
-//} memoryOutbox;
-//
-//typedef struct writebackInbox {
-//  int isEmpty;
-//} writebackInbox;
-//
-//typedef struct writebackOutbox {
-//  int isEmpty;
-//} writebackOutbox;
-//
-//typedef struct fetchBox {
-//  int count;
-//  fetchInbox in;
-//  fetchOutbox out;
-//} fetchBox;
-//
-//typedef struct decodeBox {
-//  int count;
-//  decodeInbox in;
-//  decodeOutbox out;
-//} decodeBox;
-//
-//typedef struct executeBox {
-//  int count;
-//  executeInbox in;
-//  executeOutbox out;
-//} executeBox;
-//
-//typedef struct memoryBox {
-//  int count;
-//  memoryInbox in;
-//  memoryOutbox out;
-//} memoryBox;
-//
-//typedef struct writebackBox {
-//  int count;
-//  writebackInbox in;
-//  writebackOutbox out;
-//} writebackBox;
-//
-//typedef struct Bus {
-//  fetchBox fetch;
-//  decodeBox decode;
-//  executeBox execute;
-//  memoryBox memory;
-//  writebackBox writeback;
-//} Bus;
-
-
 
 void fetch();
 void decode();
@@ -160,8 +117,6 @@ void loopMem();
 //void handleInstruction(unsigned int instr);
 void handleInstruction(int index);
 void executeInstruction(instruction *instr);
-
-void getInstructionFunction(instruction *instr);
 
 void readInstruction(int index, instruction *instr);
 void printInstruction(instruction *instr);
@@ -197,7 +152,6 @@ unsigned int getSReg(int regNum);
 unsigned int getVReg(int regNum);
 unsigned int getReg(int regNum);
 
-void computeMemAddress(instruction *instr);
 void lw(instruction *instr);
 void jal(instruction *instr);
 void and(instruction *instr);
