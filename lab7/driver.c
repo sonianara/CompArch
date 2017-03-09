@@ -104,6 +104,7 @@ void initInOutBoxes() {
 }
 
 void startPipelinedSimulation(int mode) {
+  pc = userMemoryBase;
   for (haltflag = 0; !haltflag; totalClocks++) {
     writeback();
     memory();
@@ -134,25 +135,26 @@ void fetch() {
 }
 
 void decode() {
-  printf("DECODE()\n");
   instruction instr;
   unsigned int rawInstruction;
   if (!bus.fd.isEmpty && bus.de.isEmpty) {
+    printf("Running decode cycle; \n");
     rawInstruction = bus.fd.instr;
     decodeInstruction(rawInstruction, &instr);
+    printInstruction(&instr);
     bus.fd.isEmpty = TRUE;
     bus.de.instr = instr;
     bus.de.isEmpty = FALSE;
     stats.decodeCount++;
   } else {
-    printf("Not running decode cycle\n");
+    printf("Not running decode cycle;\n");
   }
 }
 
 void execute() {
-  printf("EXECUTE()\n");
   instruction instr;
   if (!bus.de.isEmpty && bus.em.isEmpty) {
+    printf("Running execute cycle; \n");
     bus.de.isEmpty = TRUE;
     instr = bus.de.instr;
     stats.executeCount++;
@@ -197,10 +199,10 @@ void execute() {
 }
 
 void memory() {
-  printf("MEMORY()\n");
   instruction instr;
   unsigned int address;
   if (!bus.em.isEmpty && bus.mw.isEmpty && bus.em.willAccessMem) {
+    printf("Running mem cycle\n");
     instr = bus.em.instr;
     address = instr.memAddress;
     bus.em.isEmpty = TRUE;
@@ -236,9 +238,9 @@ void memory() {
 }
 
 void writeback() {
-  printf("WRITEBACK()\n");
   instruction instr;
   if (!bus.mw.isEmpty) {
+    printf("Running writeback cycle\n");
     bus.em.isEmpty = FALSE;
     instr = bus.em.instr;
     executeInstruction(&instr);
@@ -784,7 +786,6 @@ void loadBinaryFile() {
   printf("EntryPoint: %d\n", entryPoint);
 
   while ((memOffset / 4) < entryPoint / 4) {
-    printf("load memory item\n");
     n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
     (memOffset) += 4;
   }
@@ -819,6 +820,10 @@ void printRegisters() {
     }
   }
   printf("\n");
+}
+
+void printBus() {
+  printf("fetch_decode: 0x%X\n", bus);
 }
 
 /*******************************************************/
