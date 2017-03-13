@@ -12,8 +12,8 @@
 #include "driver.h"
 
 //#define FILENAME "countbits_benchmark2.mb"
-//#define FILENAME "diagnostics.mb"
-#define FILENAME "simple_add.mb"
+#define FILENAME "diagnostics.mb"
+//#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
 #define FIXED 2
@@ -97,162 +97,106 @@ int getRunMode() {
 
 void initInOutBoxes() {
   //printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
-  bus.fd.isEmpty = TRUE;
-  bus.de.isEmpty = TRUE;
-  bus.em.isEmpty = TRUE;
-  bus.mw.isEmpty = TRUE;
 }
 
 void startPipelinedSimulation(int mode) {
-  pc = userMemoryBase;
   for (haltflag = 0; !haltflag; totalClocks++) {
     writeback();
     memory();
     execute();
     decode();
     fetch();
-    if (mode == SINGLE_STEP) { // && pc > PCGOTO) {
-      getchar();
-    }
-    printf("\n");
   }
 }
 
 void fetch() {
+  printf("FETCH()\n");
   unsigned int instr;
   // if inbox isn't empty, & outbox is empty
-  // if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+  //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
   if (bus.fd.isEmpty) {
-    printf("Running fetch cycle\n");
     bus.fd.isEmpty = FALSE;
     instr = mem[pc / 4];
     bus.fd.instr = instr;
     pc = pc + 4;
     stats.fetchCount++;
   } else {
-    printf("Not running fetch cycle; bus.fd.isEmpty: %d\n",  bus.fd.isEmpty);
+    printf("Not running fetch cycle\n");
   }
 }
 
 void decode() {
+  printf("DECODE()\n");
   instruction instr;
   unsigned int rawInstruction;
   if (!bus.fd.isEmpty && bus.de.isEmpty) {
-    printf("Running decode cycle; \n");
-    rawInstruction = bus.fd.instr;
     decodeInstruction(rawInstruction, &instr);
-    printInstruction(&instr);
     bus.fd.isEmpty = TRUE;
-    bus.de.instr = instr;
+    bus.de.instr = isntr;
     bus.de.isEmpty = FALSE;
     stats.decodeCount++;
   } else {
-    printf("Not running decode cycle;\n");
+    printf("Not running decode cycle\n");
   }
 }
 
 void execute() {
+  printf("EXECUTE()\n");
   instruction instr;
   if (!bus.de.isEmpty && bus.em.isEmpty) {
-    printf("Running execute cycle; \n");
-    bus.de.isEmpty = TRUE;
-    instr = bus.de.instr;
-    stats.executeCount++;
-
+    bus.fd.isEmpty = TRUE;
+    isntr = bus.de.instr;
     if (instr.willAccessMem) {
       computeMemAddress(&instr);
       bus.em.willAccessMem = TRUE;
-      bus.em.instr = instr;
-      bus.em.isEmpty = FALSE;
-
     }
-
-    else if (instr.type == J_TYPE) {
-      if (strcmp(instr.mneumonic, "j") == 0) {
-        unsigned int index = userMemoryBase - entryPoint +
-          ((index << 2) | (pc & 0b11110000000000000000000000000000));
-        pc = index;
-      } else if (strcmp(instr.mneumonic, "jal") == 0) {
-        int index = userMemoryBase - 4 + instr.index * 4;
-        Reg[31] = pc;
-        pc = index;
-      } else if (strcmp(instr.mneumonic, "jalr") == 0) {
-        int rs = instr.rs;
-        pc = Reg[rs];
-        Reg[31] = pc + 4;
-      } else if (strcmp(instr.mneumonic, "jr") == 0) {
-        int rs = instr.rs;
-        pc = Reg[rs];
-      }
-
-    }
-
-    else { // r-type
-      bus.em.willAccessMem = FALSE;
-      bus.em.instr = instr;
-      bus.em.isEmpty = FALSE;
-    }
-
+    bus.em.instr = instr;
+    bus.em.isEmpty = FALSE;
+    stats.executeCount++;
   } else {
     printf("Not running execute cycle\n");
   }
 }
 
 void memory() {
+  printf("MEMORY()\n");
   instruction instr;
   unsigned int address;
-  if (!bus.em.isEmpty && bus.mw.isEmpty && bus.em.willAccessMem) {
-    printf("Running mem cycle\n");
+  if (!bus.em.isEmpty && bus.mw.isEmpty && bus.willAccessMem) {
     instr = bus.em.instr;
     address = instr.memAddress;
     bus.em.isEmpty = TRUE;
-    if (strcmp(instr.mneumonic, "lw") == 0) {
+    if (strcmp(instr->mneumonic, "lw") == 0) {
       bus.mw.value = (signed short)mem[address];
-    } else if (strcmp(instr.mneumonic, "lh") == 0) {
+    } else if (strcmp(instr->mneumonic, "lh") == 0) {
       bus.mw.value = (short)mem[address];
-    } else if (strcmp(instr.mneumonic, "lb") == 0) {
+    } else if (strcmp(instr->mneumonic, "lb") == 0) {
       bus.mw.value = (signed char)mem[address];
-    } else if (strcmp(instr.mneumonic, "lbu") == 0) {
-      bus.mw.value = (unsigned char)mem[address];
-    } else if (strcmp(instr.mneumonic, "lui") == 0) {
-      //bus.mw.value = (signed char)mem[address];
-    } else if (strcmp(instr.mneumonic, "lhu") == 0) {
-      bus.mw.value = (unsigned short)mem[address];
-    } else if (strcmp(instr.mneumonic, "sw") == 0) {
-      bus.mw.value = mem[address];
-    } else if (strcmp(instr.mneumonic, "sh") == 0) {
-      bus.mw.value = (short)mem[address];
-    } else if (strcmp(instr.mneumonic, "sb") == 0) {
-      bus.mw.value = (char)mem[address];
+    } else if (strcmp(instr->mneumonic, "sw") == 0) {
+      bus.mw.value = (signed short)mem[address];
+    } else if (strcmp(instr->mneumonic, "sh") == 0) {
+      bus.mw.value = (signed short)mem[address];
+    } else if (strcmp(instr->mneumonic, "sb") == 0) {
+      bus.mw.value = (signed short)mem[address];
     }
-    bus.mw.isEmpty = FALSE;
     stats.memoryCount++;
-  } else if (!bus.em.isEmpty && bus.mw.isEmpty) {
-    bus.mw.instr = bus.em.instr;
-    bus.mw.isEmpty = FALSE;
-    bus.em.isEmpty = TRUE;
-    printf("Passing to WB\n");
   } else {
     printf("Not running mem cycle\n");
   }
 }
 
 void writeback() {
+  printf("WRITEBACK()\n");
   instruction instr;
   if (!bus.mw.isEmpty) {
-    printf("Running writeback cycle\n");
     bus.em.isEmpty = FALSE;
-    instr = bus.em.instr;
-    executeInstruction(&instr);
     stats.writebackCount++;
   } else {
-    printf("Not running writeback cycle\n");
   }
+  bus.writeback.count++;
 }
 
 void computeMemAddress(instruction *instr) {
-  int rs = instr->rs;
-  short imm = instr->imm / 4;
   instr->memAddress = mem[Reg[rs] + imm];
 }
 
@@ -291,11 +235,6 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
   instr->type = getType(&rawInstruction);
   instr->opcode = getOpcode(&rawInstruction);
   if (instr->type == R_TYPE) {
-    if (isBranch(instr->funct)) {
-      instr->isBranch = TRUE;
-    } else {
-      instr->isBranch = FALSE;
-    }
     instr->rs = getRS(&rawInstruction);
     instr->rd = getRD(&rawInstruction);
     instr->rt = getRT(&rawInstruction);
@@ -309,19 +248,11 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
     instr->index = getIndex(&rawInstruction);
   }
 
-  if (rawInstruction == 0) {
-    strcpy(instr->mneumonic, "NOP");
-  } else {
-    getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
-  }
-  instr->isSyscall = (strcmp(instr->mneumonic, "SYSCL") == 0) ? 1: 0;
-
   if (
       strcmp(instr->mneumonic, "lw") == 0 ||
       strcmp(instr->mneumonic, "lh") == 0 ||
       strcmp(instr->mneumonic, "lb") == 0 ||
       strcmp(instr->mneumonic, "lbu") == 0 ||
-      strcmp(instr->mneumonic, "lui") == 0 ||
       strcmp(instr->mneumonic, "lhu") == 0 ||
       strcmp(instr->mneumonic, "sw") == 0 ||
       strcmp(instr->mneumonic, "sh") == 0 ||
@@ -331,12 +262,46 @@ void decodeInstruction(unsigned int rawInstruction, instruction *instr) {
   } else {
     instr->willAccessMem = FALSE;
   }
-  //getInstructionFunction(instr);
+
+  if (rawInstruction == 0) {
+    strcpy(instr->mneumonic, "NOP");
+  } else {
+    getMneumonic(instr->opcode, instr->funct, (*instr).mneumonic);
+  }
+  instr->isSyscall = (strcmp(instr->mneumonic, "SYSCL") == 0) ? 1: 0;
 }
 
 void executeInstruction(instruction *instr) {
   printf("Execute `%s` type instruction\n", instr->mneumonic);
   instructionCount++;
+
+//  if (instr->isSyscall)
+//    systemCall(instr);
+//
+//  else if (strcmp(instr->mneumonic, "add") == 0)
+//    add(instr);
+//  else if (strcmp(instr->mneumonic, "addi") == 0)
+//    addi(instr);
+//  else if (strcmp(instr->mneumonic, "lw") == 0)
+//    lw(instr);
+//  else if (strcmp(instr->mneumonic, "jal") == 0)
+//    jal(instr);
+//  else if (strcmp(instr->mneumonic, "and") == 0)
+//    and(instr);
+//  else if (strcmp(instr->mneumonic, "ori") == 0)
+//    ori(instr);
+//  else if (strcmp(instr->mneumonic, "beq") == 0)
+//    beq(instr);
+//  else if (strcmp(instr->mneumonic, "bne") == 0)
+//    bne(instr);
+//  else if (strcmp(instr->mneumonic, "sll") == 0)
+//    sll(instr);
+//  else if (strcmp(instr->mneumonic, "jr") == 0)
+//    jr(instr);
+//  else if (strcmp(instr->mneumonic, "or") == 0)
+//    or(instr);
+
+
 
   if (instr->isSyscall)
     systemCall(instr);
@@ -786,6 +751,7 @@ void loadBinaryFile() {
   printf("EntryPoint: %d\n", entryPoint);
 
   while ((memOffset / 4) < entryPoint / 4) {
+    printf("load memory item\n");
     n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
     (memOffset) += 4;
   }
@@ -820,10 +786,6 @@ void printRegisters() {
     }
   }
   printf("\n");
-}
-
-void printBus() {
-  printf("fetch_decode: 0x%X\n", bus);
 }
 
 /*******************************************************/
@@ -910,7 +872,6 @@ void systemCall(instruction *instr) {
     case 10:
             printf("Syscall to exit\n");
             exitTriggered = 1;
-            haltflag = 1;
             break;
     default: printf("Unknown syscall type\n"); break;
   }
@@ -1218,7 +1179,9 @@ void sltiu(instruction *instr) {
 
 void j(instruction *instr) {
   int index = instr->index;
-  index = userMemoryBase - entryPoint + ((index << 2) | (pc & 0b11110000000000000000000000000000));
+  index = index << 2;
+  index = index | (pc & 0b11110000000000000000000000000000 );
+  index = userMemoryBase - entryPoint + index;
   printf("index: %d\n", index);
 
   instr->numClockCycles = 3;
