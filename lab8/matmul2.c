@@ -12,7 +12,6 @@ mem_read(int *mp) {
   /* printf("Memory read from location %p\n", mp);  */
 }
 
-
 /* This function gets called with each "write" reference to memory */
 mem_write(int *mp) {
   /* printf("Memory write to location %p\n", mp); */
@@ -22,7 +21,7 @@ mem_write(int *mp) {
 static int a[AMAX][AMAX], b[AMAX][AMAX], mult[AMAX][AMAX];
 
 void matmul( r1, c1, c2 ) {
-  int i,j,k;
+  int i, j, k;
   int *mp1, *mp2, *mp3;
 
   /* Initializing elements of matrix mult to 0.*/
@@ -47,6 +46,13 @@ void matmul( r1, c1, c2 ) {
         mem_write(mp1); 
 #endif
 
+        printf("mult[i][j] += a[i][k] * b[k][j]\n");
+        printf("\ti=%d", i);
+        printf("\tj=%d", j);
+        printf("\tk=%d", k);
+        printf("\ta[i][k]=%d", a[i][k]);
+        printf("\tb[k][j]=%d", b[k][j]);
+        printf("\tmult[%d][%d] += %d \n", i, j, a[i][k] * b[k][j]);
         mult[i][j] += a[i][k] * b[k][j];
       }
     }
@@ -64,7 +70,7 @@ int main() {
   printf("Enter rows and column for first matrix: ");
   scanf("%d%d", &r1, &c1);
   printf("Enter rows and column for second matrix: ");
-  scanf("%d%d",&r2, &c2);
+  scanf("%d%d", &r2, &c2);
 
   /* If column of first matrix in not equal to row of second matrix, asking user to enter the size of matrix again. */
   while (c1 != r2) {
@@ -72,16 +78,16 @@ int main() {
     printf("Enter rows and column for first matrix: ");
     scanf("%d%d", &r1, &c1);
     printf("Enter rows and column for second matrix: ");
-    scanf("%d%d",&r2, &c2);
+    scanf("%d%d", &r2, &c2);
   }
 
   /* Storing elements of first matrix. */
   printf("\nEnter elements of matrix 1:\n");
   for(i = 0; i < r1; ++i) {
     for(j = 0; j < c1; ++j) {
-      //        printf("Enter elements a%d%d: ",i+1,j+1);
-      //        scanf("%d",&a[i][j]);
-      a[i][j] = i + j; // build sample data
+      printf("Enter elements a%d%d: ", i + 1, j + 1);
+      scanf("%d", &a[i][j]);
+      //a[i][j] = i + j; // build sample data
     }
   }
 
@@ -89,9 +95,9 @@ int main() {
   printf("\nEnter elements of matrix 2:\n");
   for(i = 0; i < r2; ++i) {
     for(j = 0; j < c2; ++j) {
-      //        printf("Enter elements b%d%d: ",i+1,j+1);
-      //        scanf("%d",&b[i][j]);
-      b[i][j] = 10 + i + j;
+      printf("Enter elements b%d%d: ", i + 1, j + 1);
+      scanf("%d", &b[i][j]);
+      //b[i][j] = 10 + i + j;
     }
   }
 
@@ -102,7 +108,7 @@ int main() {
   for(i = 0; i < r1; ++i) {
     for(j = 0; j < c2; ++j) {
       printf("%d  ", mult[i][j]);
-      if(j == c2-1) {
+      if(j == c2 - 1) {
         printf("\n\n");
       }
     }
