@@ -12,8 +12,8 @@
 #include "driver.h"
 
 //#define FILENAME "countbits_benchmark2.mb"
-#define FILENAME "diagnostics.mb"
-//#define FILENAME "simple_add.mb"
+//#define FILENAME "diagnostics.mb"
+#define FILENAME "simple_add.mb"
 
 #define VARIABLE 1
 #define FIXED 2
@@ -97,54 +97,64 @@ int getRunMode() {
 
 void initInOutBoxes() {
   //printf("bus.fetch.in.status: %d\n", bus.fetch.in.status);
+  bus.fd.isEmpty = TRUE;
+  bus.de.isEmpty = TRUE;
+  bus.em.isEmpty = TRUE;
+  bus.mw.isEmpty = TRUE;
 }
 
 void startPipelinedSimulation(int mode) {
+  pc = userMemoryBase;
   for (haltflag = 0; !haltflag; totalClocks++) {
     writeback();
     memory();
     execute();
     decode();
     fetch();
+    if (mode == SINGLE_STEP) { // && pc > PCGOTO) {
+      getchar();
+    }
+    printf("\n");
   }
 }
 
 void fetch() {
-  printf("FETCH()\n");
   unsigned int instr;
   // if inbox isn't empty, & outbox is empty
-  //if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
+  // if (!bus.fetch.in.isEmpty && bus.fetch.out.isEmpty) {
   if (bus.fd.isEmpty) {
+    printf("Running fetch cycle\n");
     bus.fd.isEmpty = FALSE;
     instr = mem[pc / 4];
     bus.fd.instr = instr;
     pc = pc + 4;
     stats.fetchCount++;
   } else {
-    printf("Not running fetch cycle\n");
+    printf("Not running fetch cycle; bus.fd.isEmpty: %d\n",  bus.fd.isEmpty);
   }
 }
 
 void decode() {
-  printf("DECODE()\n");
   instruction instr;
   unsigned int rawInstruction;
   if (!bus.fd.isEmpty && bus.de.isEmpty) {
+    printf("Running decode cycle; \n");
     rawInstruction = bus.fd.instr;
     decodeInstruction(rawInstruction, &instr);
+    printInstruction(&instr);
     bus.fd.isEmpty = TRUE;
     bus.de.instr = instr;
     bus.de.isEmpty = FALSE;
     stats.decodeCount++;
   } else {
-    printf("Not running decode cycle\n");
+    printf("Not running decode cycle;\n");
   }
 }
 
 void execute() {
-  printf("EXECUTE()\n");
   instruction instr;
   if (!bus.de.isEmpty && bus.em.isEmpty) {
+    printf("Running execute cycle; \n");
     bus.de.isEmpty = TRUE;
     instr = bus.de.instr;
     stats.executeCount++;
@@ -189,10 +199,10 @@ void execute() {
 }
 
 void memory() {
-  printf("MEMORY()\n");
   instruction instr;
   unsigned int address;
   if (!bus.em.isEmpty && bus.mw.isEmpty && bus.em.willAccessMem) {
+    printf("Running mem cycle\n");
     instr = bus.em.instr;
     address = instr.memAddress;
     bus.em.isEmpty = TRUE;
@@ -228,9 +238,9 @@ void memory() {
 }
 
 void writeback() {
-  printf("WRITEBACK()\n");
   instruction instr;
   if (!bus.mw.isEmpty) {
+    printf("Running writeback cycle\n");
     bus.em.isEmpty = FALSE;
     instr = bus.em.instr;
     executeInstruction(&instr);
@@ -776,7 +786,6 @@ void loadBinaryFile() {
   printf("EntryPoint: %d\n", entryPoint);
 
   while ((memOffset / 4) < entryPoint / 4) {
-    printf("load memory item\n");
     n = fread((void *) &mem[(memOffset)/4], 4, 1, fd); /* note div/4 to make word index */
     (memOffset) += 4;
   }
@@ -811,6 +820,10 @@ void printRegisters() {
     }
   }
   printf("\n");
+}
+
+void printBus() {
+  printf("fetch_decode: 0x%X\n", bus);
 }
 
 /*******************************************************/
