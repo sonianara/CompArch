@@ -1,34 +1,31 @@
+#define AMAX 10     /* Maximum (square) array size */
 
-
-
-#define AMAX 10			/* Maximum (square) array size */
-
-#define CACHESIM 0		/* Set to 1 if simulating Cache */
+#define CACHESIM 0    /* Set to 1 if simulating Cache */
 
 #include <stdio.h>
 
-/*	memory management, code density, Cache emulation - statistics generation */
-/*	Generated for CSC 315 Lab 5 */
+/*  memory management, code density, Cache emulation - statistics generation */
+/*  Generated for CSC 315 Lab 5 */
 
 
 /* This function gets called with each "read" reference to memory */
 
 mem_read(int *mp)
-	{
+  {
 
-	/* printf("Memory read from location %p\n", mp);  */
+  /* printf("Memory read from location %p\n", mp);  */
 
-	}
+  }
 
 
 /* This function gets called with each "write" reference to memory */
 
 mem_write(int *mp)
-	{
+  {
 
-	/* printf("Memory write to location %p\n", mp); */
+  /* printf("Memory write to location %p\n", mp); */
 
-	}
+  }
 
 
 /* Statically define the arrays a, b, and mult, where mult will become the cross product of a and b, i.e., a x b. */
@@ -60,15 +57,15 @@ void matmul( r1, c1, c2 )
       for(k=0; k<c1; ++k)
         {
 
-#if CACHESIM		/* "Hooks" to measure memory references - enabled if CACHESIM  */
+#if CACHESIM    /* "Hooks" to measure memory references - enabled if CACHESIM  */
 
         mp1 = &mult[i][j];
-	mp2 = &a[i][k];
-	mp3 = &b[k][j];   
-	mem_read(mp1);
- 	mem_read(mp2);
-	mem_read(mp3);
-	mem_write(mp1); 
+  mp2 = &a[i][k];
+  mp3 = &b[k][j];   
+  mem_read(mp1);
+  mem_read(mp2);
+  mem_read(mp3);
+  mem_write(mp1); 
 #endif
 
         mult[i][j]+=a[i][k]*b[k][j];
@@ -111,7 +108,7 @@ int main()
           {
 //        printf("Enter elements a%d%d: ",i+1,j+1);
 //        scanf("%d",&a[i][j]);
-	a[i][j] = i+j; // build sample data
+  a[i][j] = i+j; // build sample data
 
           }
 
@@ -127,7 +124,7 @@ int main()
     }
 
 
-   matmul(r1, c1, c2);  	/* Invoke matrix multiply function */	
+   matmul(r1, c1, c2);    /* Invoke matrix multiply function */ 
 
 
 /* Displaying the multiplication of two matrix. */
