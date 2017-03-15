@@ -1,0 +1,11 @@
+#!/bin/bash
+
+gcc matmul2.c
+if [[ $? == 0 ]]; then
+  echo "Compiled successfully"
+  echo ""
+  echo ""
+  ./a.out
+else
+  echo "Compilation failed"
+fi
