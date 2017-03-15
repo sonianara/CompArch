@@ -4,8 +4,33 @@
 #define AMAX 10     /* Maximum (square) array size */
 #define CACHESIM 0    /* Set to 1 if simulating Cache */
 
-/*  memory management, code density, Cache emulation - statistics generation */
-/*  Generated for CSC 315 Lab 5 */
+#define CACHE_SIZE 16
+#define ASSOCIATIVITY_LEVEL 1
+
+typedef struct CacheLine {
+  int valid;
+  int modified;
+  int tag;
+  int data;
+} CacheLine;
+
+typedef struct CacheEntry {
+  CacheLine blocks[ASSOCIATIVITY_LEVEL];
+} CacheEntry;
+
+
+typedef struct Cache {
+  CacheEntry entry[CACHE_SIZE];
+} Cache;
+
+int is64BitMachine() {
+  int test = 5;
+  return sizeof &test == 8;
+}
+
+int getIndex(int *mp) {
+
+}
 
 /* This function gets called with each "read" reference to memory */
 mem_read(int *mp) {
@@ -115,4 +140,5 @@ int main() {
   }
   return 0;
 }
+
 
