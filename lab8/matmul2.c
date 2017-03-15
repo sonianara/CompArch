@@ -1,17 +1,32 @@
 
 #include <stdio.h>
+#include <math.h>
 
 #define AMAX 10     /* Maximum (square) array size */
 #define CACHESIM 0    /* Set to 1 if simulating Cache */
 
-#define CACHE_SIZE 16
+//#define CACHE_SIZE 16
+#define CACHE_SIZE 256
 #define ASSOCIATIVITY_LEVEL 1
+#define TRUE 1
+#define FALSE 0
+
+int is64Bit;
+int numIndexBits;
+int numBlockOffsetBits;
+int numTagBits;
+
+typedef struct VirtualAddress {
+  double tag;
+  unsigned int index;
+  unsigned int byteOffset;
+} VirtualAddress;
 
 typedef struct CacheLine {
-  int valid;
-  int modified;
-  int tag;
-  int data;
+  unsigned int valid;
+  unsigned int modified;
+  unsigned int tag;
+  unsigned int data;
 } CacheLine;
 
 typedef struct CacheEntry {
@@ -28,8 +43,16 @@ int is64BitMachine() {
   return sizeof &test == 8;
 }
 
-int getIndex(int *mp) {
-
+int decodeAddress(int *mp, VirtualAddress *addr) {
+  unsigned int address = mp;
+  addr->tag = address >> (numIndexBits + numBlockOffsetBits);
+  addr->index = (address << (numTagBits)) >> (numIndexBits + numBlockOffsetBits);
+  addr->byteOffset = (address << (numTagBits + numIndexBits)) >> (numIndexBits + numTagBits);
+  printf("Address: 0x%X\n", address);
+  printf("Address: 0x%X\n", mp);
+  printf("Tag: 0x%X\n", addr->tag);
+  printf("Index: 0x%X\n", addr->index);
+  printf("byteOffset: 0x%X\n", addr->byteOffset);
 }
 
 /* This function gets called with each "read" reference to memory */
@@ -84,13 +107,40 @@ void matmul( r1, c1, c2 ) {
   }
 }
 
+void initCache() {
+  is64Bit = is64BitMachine();
+  numIndexBits = ceil(log2(CACHE_SIZE));
+  numBlockOffsetBits = 2;
+  if (is64Bit) {
+    printf("Running on a 64-bit machine.\n");
+    numTagBits = 64 - numIndexBits - numBlockOffsetBits;
+  } else {
+    printf("Running on a 32-bit machine.\n");
+    numTagBits = 32 - numIndexBits - numBlockOffsetBits;
+  }
+  printf("Cache Size: %d\n", CACHE_SIZE);
+  printf("Number of Index Bits: %d\n", numIndexBits);
+  printf("Number of Block Offset Bits: %d\n", numBlockOffsetBits);
+  printf("Number of Tag Bits: %d\n", numTagBits);
+  printf("\n");
+}
+
+void test() {
+  int x = 5;
+  VirtualAddress va;
+  decodeAddress(&x, &va);
+
+
+}
 
 int main() {
+  initCache();
+
+  test();
+
   int r1, c1, r2, c2, i, j, k;
 
   int *mp1, *mp2, *mp3;
-
-  printf("Size of pointer is: %d\n\n", sizeof(mp1));
 
   printf("Enter rows and column for first matrix: ");
   scanf("%d%d", &r1, &c1);
