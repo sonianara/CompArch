@@ -6,18 +6,18 @@
 #include <math.h>
 
 
-#define AMAX 10     /* Maximum (square) array size */
-//#define AMAX 2
+//#define AMAX 10     /* Maximum (square) array size */
+#define AMAX 2
 #define CACHESIM 1    /* Set to 1 if simulating Cache */
 #define CONTINUOUS 0
 #define QUICKRUN 1
-//#define MATRIX_SIZE 2
-#define MATRIX_SIZE 10
+#define MATRIX_SIZE 2
+//#define MATRIX_SIZE 10
 #define CACHE_SIZE 16
 //#define CACHE_SIZE 256
-//#define ASSOCIATIVITY_LEVEL 1
+#define ASSOCIATIVITY_LEVEL 1
 //#define ASSOCIATIVITY_LEVEL 2
-#define ASSOCIATIVITY_LEVEL 4
+//#define ASSOCIATIVITY_LEVEL 4
 
 #include "header.h"
 
