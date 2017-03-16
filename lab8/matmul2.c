@@ -6,15 +6,15 @@
 #include <math.h>
 
 
-//#define AMAX 10     /* Maximum (square) array size */
-#define AMAX 2
+#define AMAX 10     /* Maximum (square) array size */
+//#define AMAX 2
 #define CACHESIM 1    /* Set to 1 if simulating Cache */
 #define CONTINUOUS 0
 #define QUICKRUN 1
-#define MATRIX_SIZE 2
-//#define MATRIX_SIZE 10
-//#define CACHE_SIZE 16
-#define CACHE_SIZE 256
+//#define MATRIX_SIZE 2
+#define MATRIX_SIZE 10
+#define CACHE_SIZE 16
+//#define CACHE_SIZE 256
 //#define ASSOCIATIVITY_LEVEL 1
 //#define ASSOCIATIVITY_LEVEL 2
 #define ASSOCIATIVITY_LEVEL 4
@@ -51,12 +51,12 @@ int chooseReplacement(CacheEntry *ce) {
   for (idx = 0; idx < ASSOCIATIVITY_LEVEL; idx++) {
     cl = &ce->lines[idx];
     if (!cl->valid) {
-      //printf("Choosing replacement. Chose next: %d\n", idx);
+      printf("Choosing replacement. Chose next: %d\n", idx);
       return idx;
     }
   }
   int replaceIndex = rand() % ASSOCIATIVITY_LEVEL;
-  //printf("Choosing replacement. Chose random: %d\n", replaceIndex);
+  printf("Choosing replacement. Chose random: %d\n", replaceIndex);
   return replaceIndex;
 }
 
@@ -86,14 +86,14 @@ int mem_read(int *mp) {
       // HIT! read data from cache
       cache.hits++;
       isHit = TRUE;
-      //printf("*HIT*\n");
+      printf("*HIT*\n");
       break;
     } 
   }
   if (!isHit) {
     // Cache line is not valid from mem 
     // and store in cache
-    //printf("*MISS*\n");
+    printf("*MISS*\n");
     cache.misses++;
     cache.writes++;
     int idx = chooseReplacement(cacheEntry);
@@ -120,7 +120,7 @@ int mem_write(int *mp) {
   cacheLine.data = *mp;
   cacheLine.valid = TRUE;
   cacheLine.modified = TRUE;
-  //printf("\n\n");
+  printf("\n\n");
 }
 
 /* Statically define the arrays a, b, and mult, where mult will become the cross product of a and b, i.e., a x b. */
@@ -159,8 +159,8 @@ void matmul(int r1, int c1, int c2) {
         //        printf("\tb[k][j]=%d", b[k][j]);
         //        printf("\tmult[%d][%d] += %d \n", i, j, a[i][k] * b[k][j]);
         mult[i][j] += a[i][k] * b[k][j];
-        //printCache();
-        //printf("======================\n");
+        printCache();
+        printf("======================\n");
 #if CONTINUOUS
         getchar();
 #endif
